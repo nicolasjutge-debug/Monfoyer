@@ -28,9 +28,7 @@
   .tab{flex:1 1 auto;min-width:100px;text-align:center;padding:10px 12px;border-radius:999px;background:#fff;font-weight:700;font-size:.8rem;cursor:pointer;color:#1e30c8;border:2px solid #dde0f8;white-space:nowrap;}
   .tab.active{background:#1e30c8;color:#fff;border-color:#1e30c8;}
   @media(min-width:600px){
-    .tabs{padding:0 20px 20px;background:linear-gradient(160deg,var(--blue) 0%,var(--blue-dark) 100%);margin-top:0;border-radius:0 0 28px 28px;margin-top:-28px;position:relative;z-index:0;}
-    .tab{background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.25);}
-    .tab.active{background:#fff;color:var(--blue);border-color:#fff;}
+    .tabs{max-width:660px;margin:0 auto;}
   }
   .wrap{max-width:660px;margin:0 auto;padding:0 16px 60px;}
   .panel{display:none;margin-top:-14px;}
@@ -300,11 +298,11 @@
 
   <!-- ================= PARTAGE ================= -->
   <div class="panel" id="panel-partage">
-    <div class="card" style="border-color:#d4e6cc;background:#f6faf4;">
+    <div class="card">
       <h3 style="font-size:1.3rem;margin-bottom:16px;">Synchronisation Cloud</h3>
-      <div class="field" style="margin-bottom:12px;"><label style="font-weight:600;">Master Key</label><input type="text" id="jb_key" placeholder="Entrez votre clé..." style="border-radius:12px;border:1.5px solid #d4e6cc;padding:14px;font-size:1rem;"></div>
-      <div class="field" style="margin-bottom:16px;"><label style="font-weight:600;">Bin ID</label><input type="text" id="jb_bin" placeholder="ID du bin..." style="border-radius:12px;border:1.5px solid #d4e6cc;padding:14px;font-size:1rem;"></div>
-      <button class="btn" onclick="jbForceSave()" style="background:#4a9e5c;border-radius:12px;font-size:1rem;padding:14px;margin-bottom:8px;">Synchroniser avec JSONBin</button>
+      <div class="field" style="margin-bottom:12px;"><label style="font-weight:600;">Master Key</label><input type="text" id="jb_key" placeholder="Entrez votre clé..." style="border-radius:12px;border:1.5px solid #dfe1f2;padding:14px;font-size:1rem;"></div>
+      <div class="field" style="margin-bottom:16px;"><label style="font-weight:600;">Bin ID</label><input type="text" id="jb_bin" placeholder="ID du bin..." style="border-radius:12px;border:1.5px solid #dfe1f2;padding:14px;font-size:1rem;"></div>
+      <button class="btn" onclick="jbForceSave()" style="border-radius:12px;font-size:1rem;padding:14px;margin-bottom:8px;">Synchroniser avec JSONBin</button>
       <button class="btn ghost" onclick="jbForceLoad()" style="border-radius:12px;">⬇️ Récupérer depuis JSONBin</button>
       <div class="note" id="jb_status" style="margin-top:10px;"></div>
       <div class="note">Renseignez votre clé JSONBin une seule fois — toutes vos modifications sont ensuite envoyées automatiquement en arrière-plan. Utilisez la même clé + le même Bin ID sur chaque appareil pour partager vos données.</div>
