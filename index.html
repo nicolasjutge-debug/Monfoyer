@@ -126,7 +126,12 @@
 
     /* Slightly larger form fields */
     .field input,.field textarea{font-size:.96rem;}
-    .field label{font-size:.72rem;}
+    .field label{font-size:.70rem;letter-spacing:.3px;}
+
+    /* PC: force 2 cols max, inputs aligned to bottom so they line up */
+    .row{grid-template-columns:1fr 1fr;align-items:end;}
+    /* Single-child row stays full width */
+    .row > .field:only-child{grid-column:1 / -1;}
 
     /* Note text */
     .note{font-size:.76rem;}
@@ -147,16 +152,18 @@
   .card h3{margin:0 0 4px;font-size:1.05rem;font-weight:800;}
   .card .sub{font-size:.76rem;color:var(--grey);margin-bottom:12px;}
 
-  .row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
-  .field{flex:1;min-width:110px;}
-  .field label{display:block;font-size:.68rem;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;}
-  .field input,.field textarea{width:100%;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:var(--ink);background:#fbfbff;font-family:inherit;}
+  .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:10px;margin-bottom:10px;align-items:end;}
+  .field{min-width:0;}
+  .field label{display:block;font-size:.64rem;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.2px;margin-bottom:5px;line-height:1.3;overflow-wrap:break-word;hyphens:auto;}
+  .field input,.field textarea{width:100%;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:var(--ink);background:#fbfbff;font-family:inherit;box-sizing:border-box;}
   .field input:focus,.field textarea:focus{outline:none;border-color:var(--blue);background:#fff;}
   .field textarea{resize:vertical;min-height:70px;font-size:.72rem;font-weight:500;}
 
-  table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:8px;}
-  th{text-align:left;font-size:.62rem;text-transform:uppercase;color:var(--grey);padding:5px 4px;border-bottom:2px solid #eef;}
-  td{padding:6px 4px;border-bottom:1px solid #f1f2fb;font-weight:600;}
+  /* Wrapper scrollable pour tous les tableaux sur mobile */
+  .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:8px;min-width:320px;}
+  th{text-align:left;font-size:.62rem;text-transform:uppercase;color:var(--grey);padding:5px 4px;border-bottom:2px solid #eef;white-space:nowrap;}
+  td{padding:6px 4px;border-bottom:1px solid #f1f2fb;font-weight:600;white-space:nowrap;}
   tr:last-child td{border-bottom:none;}
   tr.editable{cursor:pointer;}
   tr.editable:active{background:#f5f6ff;}
@@ -200,6 +207,26 @@
   .cpm-estim{background:#fbf0d9;color:#8a6208;border-color:#f0dba0;}
   .cpm-proj{background:#e7ebef;color:#54606e;border-color:#d5dbe3;}
   .cpm-note-row td{font-size:.68rem;font-weight:500;color:var(--grey);font-style:italic;padding-top:0;}
+
+  /* ===== FIX : ligne ajout manuel date + index ===== */
+  .add-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .add-row .field{min-width:0;overflow:hidden;}
+  .add-row .field input[type="date"],
+  .add-row .field input[type="number"]{
+    display:block;
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+    min-width:0;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+
+  /* ===== FIX : inputs dans le tableau RGD ===== */
+  /* input date : assez large pour afficher jj/mm/aaaa sur iOS */
+  #rgd_table input[type="date"].mini-input{width:118px;}
+  /* inputs numériques : un peu plus larges pour les montants */
+  #rgd_table input[type="number"].mini-input{width:80px;}
 </style>
 </head>
 <body>
@@ -253,14 +280,14 @@
       <div class="note" style="background:#eef2ff;border-radius:8px;padding:8px 10px;margin-top:-4px;">📋 Les taux votés (commune, EPCI, GEMAPI, taxe spéciale) sont publiés chaque année dans l'<b>état 1259</b> transmis par la DDFiP à la mairie de Rennes (vers mars), la commune votant ensuite son budget avant le 30 avril. Cette publication n'est pas automatisable depuis ce fichier (pas d'accès direct au portail de la collectivité) — vérifiez-le vous-même chaque printemps, mettez à jour les 4 taux ci-dessous, videz "Estimation officielle DGFiP", puis cliquez sur <b>Valider les paramètres</b> pour recalculer.</div>
       <div class="row">
         <div class="field"><label>Revalorisation base (%)</label><input type="number" step="0.01" id="tf_revalo" value="0.77"></div>
-        <div class="field"><label>Taux ordures 2026 (%)</label><input type="number" step="0.01" id="tf_taux_ordures" value="9.85"></div>
+        <div class="field"><label>Taux ordures (%)</label><input type="number" step="0.01" id="tf_taux_ordures" value="9.85"></div>
       </div>
       <div class="row">
-        <div class="field"><label>Taux commune 2026 (%)</label><input type="number" step="0.01" id="tf_taux_commune" value="45.66"></div>
-        <div class="field"><label>Taux GEMAPI 2026 (%)</label><input type="number" step="0.001" id="tf_taux_gemapi" value="0.228"></div>
+        <div class="field"><label>Taux commune (%)</label><input type="number" step="0.01" id="tf_taux_commune" value="45.66"></div>
+        <div class="field"><label>Taux GEMAPI (%)</label><input type="number" step="0.001" id="tf_taux_gemapi" value="0.228"></div>
       </div>
       <div class="row">
-        <div class="field"><label>Taux spéciale 2026 (%)</label><input type="number" step="0.001" id="tf_taux_special" value="0.085"></div>
+        <div class="field"><label>Taux spéciale (%)</label><input type="number" step="0.001" id="tf_taux_special" value="0.085"></div>
       </div>
       <div class="result">
         <span class="r-label">Total estimé 2026</span>
@@ -293,17 +320,17 @@
     <div class="card" data-u="eau">
       <div class="head"><div class="icon eau">💧</div><div><h3 style="margin:0;">Eau courante</h3><div class="sub" style="margin:0;">SPL Eau du Bassin Rennais</div></div></div>
       <div class="row">
-        <div class="field"><label>Facture annuelle reçue (€, prochaine ~mars 2027)</label><input type="number" step="0.01" id="eau_facture_2027" value="0"></div>
+        <div class="field"><label>Facture annuelle reçue (€, ~mars 2027)</label><input type="number" step="0.01" id="eau_facture_2027" value="0"></div>
       </div>
       <div class="note" style="margin-top:-6px;">Laissez à 0 tant que vous n'avez pas reçu la facture annuelle réelle — l'estimation ci-dessous se base alors sur vos relevés. Renseignez ce champ dès réception pour remplacer l'estimation par le montant exact facturé.</div>
       <div class="row">
         <div class="field"><label>Prix €/m³</label><input type="number" step="0.0001" id="eau_prix" value="4.34"></div>
       </div>
-      <table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="eau_table"></tbody></table>
+      <div class="table-scroll"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="eau_table"></tbody></table></div>
       <div class="editing-banner" id="eau_banner">Modification du relevé sélectionné — changez la date/l'index puis enregistrez.</div>
-      <div class="row" style="margin-top:10px;">
-        <div class="field"><label>Date du relevé</label><input type="date" id="eau_date"></div>
-        <div class="field"><label>Index (m³)</label><input type="number" step="0.001" id="eau_index"></div>
+      <div style="margin-top:10px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Date (AAAA-MM-JJ)</label><input type="text" inputmode="numeric" id="eau_date" placeholder="2026-08-05" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
+        <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Index (m³)</label><input type="number" step="0.001" id="eau_index" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
       </div>
       <button class="btn secondary" id="eau_btn" onclick="addReading('eau')">Ajouter le relevé</button>
       <button class="btn ghost" id="eau_cancel" style="display:none;" onclick="cancelEdit('eau')">Annuler la modification</button>
@@ -324,11 +351,11 @@
         <div class="field"><label>Prix €/m³</label><input type="number" step="0.0001" id="chaude_prix" value="16.57"></div>
       </div>
       <div class="note" style="margin-top:-6px;">Ce prix se recalcule automatiquement quand vous changez le "Budget global voté" dans l'onglet Charges copro (proportionnellement). Modifiable ici aussi si besoin.</div>
-      <table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="chaude_table"></tbody></table>
+      <div class="table-scroll"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="chaude_table"></tbody></table></div>
       <div class="editing-banner" id="chaude_banner">Modification du relevé sélectionné — changez la date/l'index puis enregistrez.</div>
-      <div class="row" style="margin-top:10px;">
-        <div class="field"><label>Date du relevé</label><input type="date" id="chaude_date"></div>
-        <div class="field"><label>Index (m³)</label><input type="number" step="0.001" id="chaude_index"></div>
+      <div style="margin-top:10px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Date (AAAA-MM-JJ)</label><input type="text" inputmode="numeric" id="chaude_date" placeholder="2026-08-05" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
+        <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Index (m³)</label><input type="number" step="0.001" id="chaude_index" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
       </div>
       <button class="btn secondary" id="chaude_btn" onclick="addReading('chaude')">Ajouter le relevé</button>
       <button class="btn ghost" id="chaude_cancel" style="display:none;" onclick="cancelEdit('chaude')">Annuler la modification</button>
@@ -345,11 +372,11 @@
         <div class="field"><label>Prix €/kWh</label><input type="number" step="0.0001" id="chauffage_prix" value="0.0901"></div>
       </div>
       <div class="note" style="margin-top:-6px;">Ce prix se recalcule automatiquement quand vous changez "Chauffage collectif" ou le "Budget global voté" dans l'onglet Charges copro (proportionnellement). Modifiable ici aussi si besoin.</div>
-      <table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="chauffage_table"></tbody></table>
+      <div class="table-scroll"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="chauffage_table"></tbody></table></div>
       <div class="editing-banner" id="chauffage_banner">Modification du relevé sélectionné — changez la date/l'index puis enregistrez.</div>
-      <div class="row" style="margin-top:10px;">
-        <div class="field"><label>Date du relevé</label><input type="date" id="chauffage_date"></div>
-        <div class="field"><label>Index (kWh)</label><input type="number" step="0.01" id="chauffage_index"></div>
+      <div style="margin-top:10px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Date (AAAA-MM-JJ)</label><input type="text" inputmode="numeric" id="chauffage_date" placeholder="2026-08-05" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
+        <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Index (kWh)</label><input type="number" step="0.01" id="chauffage_index" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
       </div>
       <button class="btn secondary" id="chauffage_btn" onclick="addReading('chauffage')">Ajouter le relevé</button>
       <button class="btn ghost" id="chauffage_cancel" style="display:none;" onclick="cancelEdit('chauffage')">Annuler la modification</button>
@@ -364,13 +391,13 @@
       <div class="head"><div class="icon electricite">⚡</div><div><h3 style="margin:0;">Électricité</h3><div class="sub" style="margin:0;">Alpiq — Offre Prix Stable, compteur Linky (n° PDL 50019766403389)</div></div></div>
       <div class="row">
         <div class="field"><label>Abonnement mensuel TTC (€)</label><input type="number" step="0.01" id="electricite_abo" value="15.65"></div>
-        <div class="field"><label>Prix €/kWh TTC</label><input type="number" step="0.000001" id="electricite_prix" value="0.162024"></div>
+        <div class="field"><label>Prix kWh TTC (€)</label><input type="number" step="0.000001" id="electricite_prix" value="0.162024"></div>
       </div>
-      <table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="electricite_table"></tbody></table>
+      <div class="table-scroll"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="electricite_table"></tbody></table></div>
       <div class="editing-banner" id="electricite_banner">Modification du relevé sélectionné — changez la date/l'index puis enregistrez.</div>
-      <div class="row" style="margin-top:10px;">
-        <div class="field"><label>Date du relevé</label><input type="date" id="electricite_date"></div>
-        <div class="field"><label>Index (kWh)</label><input type="number" step="0.01" id="electricite_index"></div>
+      <div style="margin-top:10px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Date (AAAA-MM-JJ)</label><input type="text" inputmode="numeric" id="electricite_date" placeholder="2026-08-05" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
+        <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Index (kWh)</label><input type="number" step="0.01" id="electricite_index" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
       </div>
       <button class="btn secondary" id="electricite_btn" onclick="addReading('electricite')">Ajouter le relevé</button>
       <button class="btn ghost" id="electricite_cancel" style="display:none;" onclick="cancelEdit('electricite')">Annuler la modification</button>
@@ -379,7 +406,7 @@
       <div class="result"><span class="r-label">Coût moyen / jour</span><span class="r-val" id="electricite_perday">0,00 €</span></div>
       <div class="result warn"><span class="r-label">Estimation fin d'année</span><span class="r-val" id="electricite_year">0,00 €</span></div>
       <div class="row" style="margin-top:8px;">
-        <div class="field"><label>Moyenne mensuelle constatée (€/mois, sur vos factures reçues)</label><input type="number" step="0.01" id="electricite_moyenne_mensuelle" value="0"></div>
+        <div class="field"><label>Moyenne mensuelle constatée (€/mois)</label><input type="number" step="0.01" id="electricite_moyenne_mensuelle" value="0"></div>
       </div>
       <div class="note" style="margin-top:-6px;">L'électricité est facturée au réel chaque mois (pas de mensualisation à régulariser) : pas de bonus/malus ici. Si vous préférez raisonner en moyenne mensuelle plutôt qu'en relevés d'index, renseignez-la ci-dessus — elle remplace alors l'estimation ci-dessous (moyenne × 12), sauf si "Facture annuelle reçue" est aussi renseignée.</div>
       <div class="note">Touchez une ligne du tableau pour la modifier. 🗑 pour la supprimer. Relevé de départ = facture Alpiq CYCL-4975386 (index 9218 → 9579, 361 kWh du 14/12/2025 au 14/01/2026). Ajoutez vos index suivants au fil de vos factures pour affiner l'estimation. L'abonnement mensuel (15,65 € TTC) est inclus dans le coût/jour et l'estimation ci-dessous. En fin d'année, utilisez « Archiver l'année » : le total est conservé pour le graphique d'évolution 5 ans, et le suivi repart de zéro avec le dernier index comme point de départ.</div>
@@ -448,7 +475,7 @@
       </div>
       <div class="note" style="margin-top:-6px;">Tapez le montant total voté en AG : la répartition par poste ci-dessous se fait automatiquement (au prorata du budget 2027 déjà connu). Modifiez ensuite un poste individuellement si vous avez le détail exact, puis validez.</div>
       <div class="row">
-        <div class="field"><label>Charges communes générales</label><input type="number" step="0.01" id="cp_ccg" value="37970"></div>
+        <div class="field"><label>Charges communes (CCG)</label><input type="number" step="0.01" id="cp_ccg" value="37970"></div>
         <div class="field"><label>Charges Hall A</label><input type="number" step="0.01" id="cp_halla" value="5150"></div>
       </div>
       <div class="row">
@@ -456,16 +483,16 @@
         <div class="field"><label>Charges compteurs</label><input type="number" step="0.01" id="cp_compteurs" value="3200"></div>
       </div>
       <div class="row">
-        <div class="field"><label>Charges sous-sol (par parking)</label><input type="number" step="0.01" id="cp_sousol" value="2040"></div>
+        <div class="field"><label>Sous-sol (par parking)</label><input type="number" step="0.01" id="cp_sousol" value="2040"></div>
       </div>
       <div class="result">
         <span class="r-label">Votre quote-part collective 2027</span>
         <span class="r-val" id="cp_collective">— €</span>
       </div>
-      <table>
+      <div class="table-scroll"><table>
         <thead><tr><th>Poste</th><th>Votre quote-part 2027</th></tr></thead>
         <tbody id="cp_postes_table"></tbody>
-      </table>
+      </table></div>
       <div class="note">Calculée avec vos tantièmes réels : appartement M03 (225/10000 CCG, 169/10000 Hall A, 247/10000 chauffage collectif, 1/65 compteurs) + 2 parkings (8/10000 CCG et 144/9994 sous-sol chacun), d'après l'Annexe N°3 jointe à la convocation d'AG. Répartition automatique : changez un montant ci-dessus (lors de la prochaine AG par exemple) et chaque poste se recalcule tout seul.</div>
       <button class="btn" onclick="validateCopro()">Valider les paramètres</button>
     </div>
@@ -473,10 +500,10 @@
     <div class="card">
       <div class="head"><h3 style="margin:0;">Relevés généraux des dépenses (Poirier Syndic)</h3></div>
       <div class="sub">Ajoutez chaque nouveau relevé reçu — comme pour les relevés d'énergie</div>
-      <table>
+      <div class="table-scroll"><table>
         <thead><tr><th>Date</th><th>CCG immeuble</th><th>Chauffage immeuble</th><th>Total immeuble</th><th></th></tr></thead>
         <tbody id="rgd_table"></tbody>
-      </table>
+      </table></div>
       <button class="btn secondary" onclick="addRGDRow()">Ajouter un relevé</button>
       <button class="btn ghost" onclick="archiveRGDYear()">📦 Archiver l'année</button>
       <div class="result"><span class="r-label">Votre quote-part CCG + Chauffage (dernier relevé)</span><span class="r-val" id="rgd_share">0,00 €</span></div>
@@ -497,10 +524,10 @@
     <div class="card">
       <div class="head"><h3 style="margin:0;">Suivi mensuel des appels de fonds — 2026</h3></div>
       <div class="sub">Base contractuelle Poirier Syndic (Provisions n°01, n°02, n°03) — montants et statuts modifiables</div>
-      <table>
+      <div class="table-scroll"><table>
         <thead><tr><th>Mois</th><th>Montant</th><th>Statut</th></tr></thead>
         <tbody id="cpm_table"></tbody>
-      </table>
+      </table></div>
       <button class="btn ghost" onclick="resetCPM()">Réinitialiser avec les valeurs par défaut</button>
       <div class="result"><span class="r-label">Total base 2026 (12 × 198,35 €)</span><span class="r-val" id="cpm_total">0,00 €</span></div>
       <div class="row" style="margin-top:8px;">
@@ -1324,7 +1351,7 @@ function renderRGD(){
   const tbody = document.getElementById('rgd_table');
   if(!tbody) return;
   tbody.innerHTML = RGD.map((r,i)=>`<tr>
-    <td><input class="mini-input" style="width:112px;" type="date" value="${r.date}" onchange="updateRGD(${i},'date',this.value)"></td>
+    <td><input class="mini-input" style="width:118px;" type="date" value="${r.date}" onchange="updateRGD(${i},'date',this.value)"></td>
     <td><input class="mini-input" type="number" step="0.01" value="${r.ccg}" onchange="updateRGD(${i},'ccg',this.value)"></td>
     <td><input class="mini-input" type="number" step="0.01" value="${r.chauffage}" onchange="updateRGD(${i},'chauffage',this.value)"></td>
     <td><input class="mini-input" type="number" step="0.01" value="${r.total}" onchange="updateRGD(${i},'total',this.value)"></td>
