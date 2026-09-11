@@ -364,6 +364,20 @@
       <div class="result"><span class="r-label">Coût moyen / jour</span><span class="r-val" id="chaude_perday">0,00 €</span></div>
       <div class="result warn"><span class="r-label">Estimation fin d'année</span><span class="r-val" id="chaude_year">0,00 €</span></div>
       <div class="note">Touchez une ligne du tableau pour la modifier. 🗑 pour la supprimer. Index de départ (02/01/2026 = 78 m³) repris de l'index de fin de facture 2025 (Poirier Syndic).</div>
+
+      <div class="sub" style="margin-top:16px;">📊 Repère MyConso (officiel)</div>
+      <div class="note" style="margin-top:-6px;">Reportez ici les consommations annuelles affichées dans l'app MyConso du fournisseur (onglet Année). MyConso étant la référence utilisée par le syndic, l'appli compare automatiquement ces valeurs à vos relevés pour vérifier leur cohérence — sans remplacer l'« Estimation fin d'année » ci-dessus, qui continue de se baser sur vos relevés.</div>
+      <div class="row">
+        <div class="field"><label>2023 (m³)</label><input type="number" step="0.001" id="chaude_myconso_2023" value="13.5"></div>
+        <div class="field"><label>2024 (m³)</label><input type="number" step="0.001" id="chaude_myconso_2024" value="26.9"></div>
+        <div class="field"><label>2025 (m³)</label><input type="number" step="0.001" id="chaude_myconso_2025" value="31.8"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>2026 à ce jour (m³)</label><input type="number" step="0.001" id="chaude_myconso_2026" value="20.7"></div>
+        <div class="field"><label>Relevé daté du</label><input type="text" inputmode="numeric" placeholder="2026-09-10" id="chaude_myconso_2026_date" value="2026-09-10"></div>
+      </div>
+      <div class="note" id="chaude_myconso_note" style="margin-top:-6px;"></div>
+      <div class="note" style="margin-top:-6px;">Valeurs 2023-2026 lues sur vos captures d'écran MyConso (pas de chiffre imprimé sur le graphique) — à corriger si l'app affiche une valeur exacte au survol/détail.</div>
     </div>
 
     <div class="card" data-u="chauffage">
@@ -385,6 +399,20 @@
       <div class="result"><span class="r-label">Coût moyen / jour</span><span class="r-val" id="chauffage_perday">0,00 €</span></div>
       <div class="result warn"><span class="r-label">Estimation fin d'année</span><span class="r-val" id="chauffage_year">0,00 €</span></div>
       <div class="note">Touchez une ligne du tableau pour la modifier. 🗑 pour la supprimer. Index de départ (02/01/2026 = 13 027 kWh) repris de l'index de fin de facture 2025 (Poirier Syndic).</div>
+
+      <div class="sub" style="margin-top:16px;">📊 Repère MyConso (officiel)</div>
+      <div class="note" style="margin-top:-6px;">Reportez ici les consommations annuelles affichées dans l'app MyConso du fournisseur (onglet Année). MyConso étant la référence utilisée par le syndic, l'appli compare automatiquement ces valeurs à vos relevés pour vérifier leur cohérence — sans remplacer l'« Estimation fin d'année » ci-dessus, qui continue de se baser sur vos relevés.</div>
+      <div class="row">
+        <div class="field"><label>2023 (kWh)</label><input type="number" step="1" id="chauffage_myconso_2023" value="3061"></div>
+        <div class="field"><label>2024 (kWh)</label><input type="number" step="1" id="chauffage_myconso_2024" value="3809"></div>
+        <div class="field"><label>2025 (kWh)</label><input type="number" step="1" id="chauffage_myconso_2025" value="5266"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>2026 à ce jour (kWh)</label><input type="number" step="1" id="chauffage_myconso_2026" value="1772"></div>
+        <div class="field"><label>Relevé daté du</label><input type="text" inputmode="numeric" placeholder="2026-09-10" id="chauffage_myconso_2026_date" value="2026-09-10"></div>
+      </div>
+      <div class="note" id="chauffage_myconso_note" style="margin-top:-6px;"></div>
+      <div class="note" style="margin-top:-6px;">Valeurs 2023-2026 lues sur vos captures d'écran MyConso (pas de chiffre imprimé sur le graphique) — à corriger si l'app affiche une valeur exacte au survol/détail.</div>
     </div>
 
     <div class="card" data-u="electricite">
@@ -938,6 +966,31 @@ function renderUnit(u){
   document.getElementById(u+'_perday').textContent = fmt(perDay);
   document.getElementById(u+'_year').textContent = fmt(yearEstimate);
 
+  // Cohérence MyConso (référence officielle du syndic) vs vos relevés manuels — recoupement uniquement,
+  // ne remplace jamais l'estimation ci-dessus qui reste basée sur vos relevés.
+  const myconsoEl = document.getElementById(u+'_myconso_2026');
+  const myconsoNoteEl = document.getElementById(u+'_myconso_note');
+  if(myconsoEl && myconsoNoteEl){
+    const myVal = parseFloat(myconsoEl.value)||0;
+    const myDateEl = document.getElementById(u+'_myconso_2026_date');
+    const myAsOf = (myDateEl && myDateEl.value) ? myDateEl.value : '2026-09-10';
+    const dec = u==='chauffage' ? 0 : 3;
+    let txt = '';
+    if(myVal>0 && totalConso>0 && rows.length>1){
+      const ecartPct = (myVal-totalConso)/totalConso*100;
+      const coherent = Math.abs(ecartPct)<=8;
+      txt = '🔎 MyConso : '+myVal.toFixed(dec)+' '+UNIT_LABEL[u]+' au '+myAsOf+' · vos relevés : '+totalConso.toFixed(dec)+' '+UNIT_LABEL[u]+' du '+first.date+' au '+lastR.date+' → écart '+(ecartPct>=0?'+':'')+ecartPct.toFixed(1)+'%, '+(coherent?'cohérent ✓':'à vérifier ⚠️ (relisez votre dernier relevé)');
+    } else if(myVal>0){
+      txt = 'Ajoutez au moins 2 relevés pour pouvoir comparer à MyConso.';
+    }
+    const v2025 = parseFloat((document.getElementById(u+'_myconso_2025')||{}).value)||0;
+    const refReelle = u==='chaude' ? REF_2025.chaude : (u==='chauffage' ? REF_2025.chauffage : 0);
+    if(v2025>0 && refReelle>0){
+      txt += (txt?' · ':'')+'prix implicite 2025 (MyConso vs facture réelle '+fmt(refReelle)+') : '+(refReelle/v2025).toFixed(4)+' €/'+UNIT_LABEL[u]+' (réf. actuelle '+prix.toFixed(4)+').';
+    }
+    myconsoNoteEl.innerHTML = txt;
+  }
+
   return yearEstimate;
 }
 
@@ -1405,6 +1458,10 @@ function getEnergyTariffs(){
     if(mensuEl) out[u+'_mensualite'] = mensuEl.value;
     const moyenneEl = document.getElementById(u+'_moyenne_mensuelle');
     if(moyenneEl) out[u+'_moyenne_mensuelle'] = moyenneEl.value;
+    ['myconso_2023','myconso_2024','myconso_2025','myconso_2026','myconso_2026_date'].forEach(suf=>{
+      const el = document.getElementById(u+'_'+suf);
+      if(el) out[u+'_'+suf] = el.value;
+    });
   });
   return out;
 }
@@ -1440,6 +1497,10 @@ UNITS.forEach(u=>{
   if(mensuEl) mensuEl.addEventListener('input', ()=>{ updateTotal(); debouncedSaveEnergyTariffs(); });
   const moyenneEl = document.getElementById(u+'_moyenne_mensuelle');
   if(moyenneEl) moyenneEl.addEventListener('input', ()=>{ updateTotal(); debouncedSaveEnergyTariffs(); });
+  ['myconso_2023','myconso_2024','myconso_2025','myconso_2026','myconso_2026_date'].forEach(suf=>{
+    const el = document.getElementById(u+'_'+suf);
+    if(el) el.addEventListener('input', ()=>{ updateTotal(); debouncedSaveEnergyTariffs(); });
+  });
 });
 
 // ---------- DONNÉES PARTAGÉES (payload) ----------
