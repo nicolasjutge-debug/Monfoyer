@@ -546,7 +546,10 @@
       <div class="sub">Reprises automatiquement depuis l'onglet Énergie</div>
       <div class="result"><span class="r-label">Eau chaude sanitaire estimée 2026/27</span><span class="r-val" id="cp_eauchaude">0,00 €</span></div>
       <div class="result"><span class="r-label">Chauffage privatif estimé 2026/27</span><span class="r-val" id="cp_chauffpriv">0,00 €</span></div>
-      <div class="note">Ce sont les mêmes estimations "fin d'année" que dans l'onglet Énergie (eau chaude sanitaire et chauffage privatif individuel) — modifiez vos relevés là-bas pour les affiner ici.</div>
+      <div class="note" style="margin-top:-6px;">Ce sont les mêmes estimations "fin d'année" que dans l'onglet Énergie (eau chaude sanitaire et chauffage privatif individuel) — modifiez vos relevés là-bas pour les affiner ici.</div>
+      <div class="result" style="opacity:.85;"><span class="r-label">Eau chaude — via MyConso</span><span class="r-val" id="cp_eauchaude_myconso">0,00 €</span></div>
+      <div class="result" style="opacity:.85;"><span class="r-label">Chauffage — via MyConso</span><span class="r-val" id="cp_chauffpriv_myconso">0,00 €</span></div>
+      <div class="note">Mêmes postes, recalculés en partant de votre consommation MyConso 2026 (référence officielle du syndic) au lieu de vos relevés — pour comparer les deux méthodes, sans remplacer les lignes ci-dessus qui alimentent seules le total principal. ⚠️ Le chauffage étant très saisonnier (pic oct.-mars), une extrapolation MyConso depuis une lecture de milieu d'année tend à sous-estimer le total réel tant que l'hiver n'est pas passé — à traiter comme indicatif.</div>
     </div>
 
     <div class="card">
@@ -575,13 +578,18 @@
         <span class="r-label">Total charges estimées 2027</span>
         <span class="r-val" id="cp_total">— €</span>
       </div>
+      <div class="result" style="opacity:.85;">
+        <span class="r-label">Total charges estimées — via MyConso</span>
+        <span class="r-val" id="cp_total_myconso">— €</span>
+      </div>
+      <div class="note" id="cp_total_ecart_note" style="margin-top:-6px;"></div>
       <div class="result warn">
         <span class="r-label" id="cp_solde_label">Solde estimé</span>
         <span class="r-val" id="cp_solde">— €</span>
       </div>
       <div class="result"><span class="r-label">Charges 2026 sans déduction du crédit N-1 (base brute)</span><span class="r-val" id="cp_base_brute">— €</span></div>
       <div class="result warn"><span class="r-label" id="cp_solde_brut_label">Solde en fin d'année (hors déduction crédit N-1)</span><span class="r-val" id="cp_solde_brut">— €</span></div>
-      <div class="note">Total = quote-part collective + eau chaude + chauffage privatif. Solde = Total − Provisions appelées. Négatif (vert) = en votre faveur, comme sur vos relevés de compte Poirier Syndic ; positif = complément à payer en régularisation.</div>
+      <div class="note">Total = quote-part collective + eau chaude + chauffage privatif (lignes "relevés" ci-dessus). Solde = Total − Provisions appelées. Négatif (vert) = en votre faveur, comme sur vos relevés de compte Poirier Syndic ; positif = complément à payer en régularisation. Le total "via MyConso" ci-dessus est fourni pour comparaison (référence officielle du syndic) ; solde et projections restent calculés sur le total "relevés".</div>
     </div>
 
     <div class="card">
@@ -975,13 +983,19 @@ function renderUnit(u){
     const myDateEl = document.getElementById(u+'_myconso_2026_date');
     const myAsOf = (myDateEl && myDateEl.value) ? myDateEl.value : '2026-09-10';
     const dec = u==='chauffage' ? 0 : 3;
+    let myEstimate = 0;
+    if(myVal>0){
+      const myElapsed = daysBetween('2026-01-01', myAsOf);
+      myEstimate = (myVal*prix)/myElapsed*365;
+    }
+    if(u==='chaude' || u==='chauffage') EnergyYearEstimatesMyConso[u] = myEstimate;
     let txt = '';
     if(myVal>0 && totalConso>0 && rows.length>1){
       const ecartPct = (myVal-totalConso)/totalConso*100;
       const coherent = Math.abs(ecartPct)<=8;
-      txt = '🔎 MyConso : '+myVal.toFixed(dec)+' '+UNIT_LABEL[u]+' au '+myAsOf+' · vos relevés : '+totalConso.toFixed(dec)+' '+UNIT_LABEL[u]+' du '+first.date+' au '+lastR.date+' → écart '+(ecartPct>=0?'+':'')+ecartPct.toFixed(1)+'%, '+(coherent?'cohérent ✓':'à vérifier ⚠️ (relisez votre dernier relevé)');
+      txt = '🔎 MyConso : '+myVal.toFixed(dec)+' '+UNIT_LABEL[u]+' au '+myAsOf+' · vos relevés : '+totalConso.toFixed(dec)+' '+UNIT_LABEL[u]+' du '+first.date+' au '+lastR.date+' → écart '+(ecartPct>=0?'+':'')+ecartPct.toFixed(1)+'%, '+(coherent?'cohérent ✓':'à vérifier ⚠️ (relisez votre dernier relevé)')+'. Estimation fin d\'année via MyConso : '+fmt(myEstimate)+' (vs '+fmt(yearEstimate)+' via relevés, reprise dans l\'onglet Charges copro).';
     } else if(myVal>0){
-      txt = 'Ajoutez au moins 2 relevés pour pouvoir comparer à MyConso.';
+      txt = 'Ajoutez au moins 2 relevés pour comparer à MyConso. Estimation fin d\'année via MyConso seule : '+fmt(myEstimate)+'.';
     }
     const v2025 = parseFloat((document.getElementById(u+'_myconso_2025')||{}).value)||0;
     const refReelle = u==='chaude' ? REF_2025.chaude : (u==='chauffage' ? REF_2025.chauffage : 0);
@@ -995,6 +1009,7 @@ function renderUnit(u){
 }
 
 let EnergyYearEstimates = {eau:0, chaude:0, chauffage:0, electricite:0};
+let EnergyYearEstimatesMyConso = {chaude:0, chauffage:0};
 
 const REF_2025 = { chaude: 530.24, chauffage: 479.50, eau_m3_annuel: 81 };
 
@@ -1161,6 +1176,8 @@ function computeCopro(){
 
   const eauChaudeEst = EnergyYearEstimates.chaude || 0;
   const chauffPrivEst = EnergyYearEstimates.chauffage || 0;
+  const eauChaudeEstMy = EnergyYearEstimatesMyConso.chaude || 0;
+  const chauffPrivEstMy = EnergyYearEstimatesMyConso.chauffage || 0;
 
   CoproPostes = {ccg:ccgCout, hallA:hallACout, chauffCol:chauffColCout, compteurs:compteursCout, sousol:sousolCout, eauChaude:eauChaudeEst, chauffPriv:chauffPrivEst};
 
@@ -1179,6 +1196,7 @@ function computeCopro(){
   }
 
   const total = collective + eauChaudeEst + chauffPrivEst;
+  const totalMyConso = collective + eauChaudeEstMy + chauffPrivEstMy;
   const provisions = parseFloat(document.getElementById('cp_provisions').value)||0;
   const solde = total - provisions;
   const baseBrute = (typeof CPM !== 'undefined') ? CPM.reduce((s,r)=>s+(parseFloat(r.amount)||0),0) : provisions;
@@ -1187,7 +1205,20 @@ function computeCopro(){
   document.getElementById('cp_collective').textContent = fmt(collective);
   document.getElementById('cp_eauchaude').textContent = fmt(eauChaudeEst);
   document.getElementById('cp_chauffpriv').textContent = fmt(chauffPrivEst);
+  const cpEauMyEl = document.getElementById('cp_eauchaude_myconso');
+  if(cpEauMyEl) cpEauMyEl.textContent = fmt(eauChaudeEstMy);
+  const cpChauffMyEl = document.getElementById('cp_chauffpriv_myconso');
+  if(cpChauffMyEl) cpChauffMyEl.textContent = fmt(chauffPrivEstMy);
   document.getElementById('cp_total').textContent = fmt(total);
+  const cpTotalMyEl = document.getElementById('cp_total_myconso');
+  if(cpTotalMyEl){
+    cpTotalMyEl.textContent = fmt(totalMyConso);
+    const ecartNoteEl = document.getElementById('cp_total_ecart_note');
+    if(ecartNoteEl){
+      const diffT = totalMyConso - total;
+      ecartNoteEl.textContent = 'Écart total MyConso vs relevés : '+(diffT>=0?'+':'')+fmt(diffT)+'.';
+    }
+  }
   document.getElementById('cp_solde').textContent = (solde>=0?'+':'')+fmt(solde);
   document.getElementById('cp_solde_label').textContent = solde>=0 ? 'Solde estimé (complément à payer)' : 'Solde estimé (en votre faveur)';
   const baseBruteEl = document.getElementById('cp_base_brute');
