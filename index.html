@@ -192,6 +192,7 @@
   .bar-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
   .bar{width:100%;border-radius:8px 8px 0 0;background:var(--blue);position:relative;}
   .bar.proj{background:var(--amber);}
+  .tf-est{font-size:.62rem;font-weight:700;font-style:italic;color:var(--grey);margin-left:5px;}
   .bar-val{font-size:.68rem;font-weight:800;margin-bottom:4px;white-space:nowrap;}
   .bar-yr{font-size:.64rem;color:var(--grey);margin-top:6px;font-weight:700;text-align:center;white-space:normal;overflow-wrap:anywhere;line-height:1.15;}
 
@@ -263,20 +264,23 @@
       <h3>Historique constaté</h3>
       <div class="sub">D'après vos avis d'impôts locaux</div>
       <table>
-        <tr><th>Année</th><th>Montant</th><th>Évolution</th></tr>
-        <tr><td>2024</td><td>1 182,00 €</td><td>—</td></tr>
-        <tr><td>2025</td><td>1 210,00 €</td><td>+2,37 %</td></tr>
-        <tr><td>2026</td><td id="tf_hist2026">—</td><td id="tf_hist_evol2026">—</td></tr>
+        <thead><tr><th>Année</th><th>Montant</th><th>Évolution</th></tr></thead>
+        <tbody id="tf_hist_body">
+          <tr><td>2024</td><td>1 182,00 €</td><td>—</td></tr>
+          <tr><td>2025</td><td>1 210,00 €</td><td>+2,37 %</td></tr>
+          <tr><td>2026<span class="tf-est">estimation</span></td><td>—</td><td>—</td></tr>
+        </tbody>
       </table>
       <div class="note">2025 est la <b>dernière année</b> de l'exonération temporaire liée à la construction neuve ("l'exonération de taxe foncière bâtie s'applique pour la dernière fois cette année"). Le service des impôts (SDIF Ille-et-Vilaine, réponse du 06/07/2026 à la demande n°1238160879) a confirmé que la valeur locative passe de 3 099 € à 3 123 € et que la taxe foncière 2026 serait de <b>1 869 €</b> si aucun taux communal n'augmente — ce montant intègre déjà la fin de l'exonération, plus besoin de l'estimer séparément.</div>
     </div>
 
     <div class="card">
-      <div class="head"><h3 style="margin:0;">Projection 2026</h3></div>
+      <div class="head"><h3 style="margin:0;" id="tf_proj_title">Projection 2026</h3></div>
       <div class="row">
         <div class="field"><label>Estimation officielle DGFiP (€)</label><input type="number" step="0.01" id="tf_officiel" value="1869"></div>
       </div>
-      <div class="note" style="margin-top:-6px;">Confirmé par la réponse SDIF Ille-et-Vilaine du 06/07/2026 (demande n°1238160879) : valeur locative 3 099 € → 3 123 €, taxe foncière 2026 = 1 869 € <b>si les taux communaux 2026 restent identiques à 2025</b>. Ce montant NE tient PAS compte d'une éventuelle revalorisation des taux votés par la commune/l'EPCI — dès que vous connaissez les vrais taux 2026 (voir ci-dessous), mettez ce champ à 0 pour repasser sur le calcul détaillé, à jour de vos nouveaux taux.</div>
+      <div class="note" id="tf_note_sdif" style="margin-top:-6px;">Confirmé par la réponse SDIF Ille-et-Vilaine du 06/07/2026 (demande n°1238160879) : valeur locative 3 099 € → 3 123 €, taxe foncière 2026 = 1 869 € <b>si les taux communaux 2026 restent identiques à 2025</b>. Ce montant NE tient PAS compte d'une éventuelle revalorisation des taux votés par la commune/l'EPCI — dès que vous connaissez les vrais taux 2026 (voir ci-dessous), mettez ce champ à 0 pour repasser sur le calcul détaillé, à jour de vos nouveaux taux.</div>
+      <div class="note" id="tf_note_next" style="margin-top:-6px;display:none;"></div>
       <div class="note" style="background:#eef2ff;border-radius:8px;padding:8px 10px;margin-top:-4px;">📋 Les taux votés (commune, EPCI, GEMAPI, taxe spéciale) sont publiés chaque année dans l'<b>état 1259</b> transmis par la DDFiP à la mairie de Rennes (vers mars), la commune votant ensuite son budget avant le 30 avril. Cette publication n'est pas automatisable depuis ce fichier (pas d'accès direct au portail de la collectivité) — vérifiez-le vous-même chaque printemps, mettez à jour les 4 taux ci-dessous, videz "Estimation officielle DGFiP", puis cliquez sur <b>Valider les paramètres</b> pour recalculer.</div>
       <div class="row">
         <div class="field"><label>Revalorisation base (%)</label><input type="number" step="0.01" id="tf_revalo" value="0.77"></div>
@@ -288,26 +292,28 @@
       </div>
       <div class="row">
         <div class="field"><label>Taux spéciale (%)</label><input type="number" step="0.001" id="tf_taux_special" value="0.085"></div>
+        <div class="field"><label id="tf_base_label">Valeur locative 2025 (€)</label><input type="number" step="1" id="tf_base" value="3099"></div>
       </div>
+      <input type="hidden" id="tf_calib" value="1">
       <div class="result">
-        <span class="r-label">Total estimé 2026</span>
-        <span class="r-val" id="tf_total2026">— €</span>
+        <span class="r-label" id="tf_total_label">Total estimé 2026</span>
+        <span class="r-val" id="tf_total">— €</span>
       </div>
-      <div class="note" style="margin-top:-6px;">Calcul détaillé par ligne, pour vérification : <b id="tf_detail2026">—</b></div>
+      <div class="note" style="margin-top:-6px;">Calcul détaillé par ligne, pour vérification : <b id="tf_detail">—</b><span id="tf_calib_note"></span></div>
       <div class="result warn">
-        <span class="r-label">Évolution vs 2025</span>
-        <span class="r-val" id="tf_evol2026">—</span>
+        <span class="r-label" id="tf_evol_label">Évolution vs 2025</span>
+        <span class="r-val" id="tf_evol">—</span>
       </div>
       <button class="btn" onclick="validateTF()">Valider les paramètres</button>
-      <button class="btn ghost" onclick="archiveTFYear()">📦 Archiver l'année</button>
-      <div class="note">Base = valeur locative confirmée (3 099 € en 2025, revalorisée puis appliquée aux 4 taux commune/ordures/GEMAPI/spéciale), + frais de gestion (≈4,31 %, ratio constaté 2025). Tant que "Estimation officielle DGFiP" est renseignée, c'est elle qui prime comme total 2026 — le calcul détaillé reste affiché à titre de recoupement. Ces paramètres sont aussi sauvegardées automatiquement à la saisie ; le bouton sert de confirmation explicite.</div>
+      <button class="btn ghost" id="tf_archive_btn" onclick="archiveTFYear()">📦 Archiver l'année 2026</button>
+      <div class="note" id="tf_note_base">Base = valeur locative confirmée (3 099 € en 2025, revalorisée puis appliquée aux 4 taux commune/ordures/GEMAPI/spéciale), + frais de gestion (≈4,31 %, ratio constaté 2025). Tant que "Estimation officielle DGFiP" est renseignée, c'est elle qui prime comme total 2026 — le calcul détaillé reste affiché à titre de recoupement. Ces paramètres sont aussi sauvegardées automatiquement à la saisie ; le bouton sert de confirmation explicite.</div>
     </div>
 
     <div class="card">
       <h3>Évolution sur 5 ans</h3>
-      <div class="sub">2024 – 2028, projection au-delà de 2026 à taux de croissance constant</div>
+      <div class="sub" id="tf_evol_sub">2024 – 2028, projection au-delà de 2026 à taux de croissance constant</div>
       <div class="row">
-        <div class="field"><label>Croissance annuelle 2027-2028 (%)</label><input type="number" step="0.1" id="tf_trend" value="2.37"></div>
+        <div class="field"><label id="tf_trend_label">Croissance annuelle 2027-2028 (%)</label><input type="number" step="0.1" id="tf_trend" value="2.37"></div>
       </div>
       <div class="bars" id="tf_bars"></div>
     </div>
@@ -335,7 +341,7 @@
       <button class="btn secondary" id="eau_btn" onclick="addReading('eau')">Ajouter le relevé</button>
       <button class="btn ghost" id="eau_cancel" style="display:none;" onclick="cancelEdit('eau')">Annuler la modification</button>
       <button class="btn ghost" onclick="resetToReal('eau')">Réinitialiser avec les valeurs réelles</button>
-      <button class="btn ghost" onclick="archiveYear('eau')">📦 Archiver l'année</button>
+      <button class="btn ghost" id="eau_archive_btn" onclick="archiveYear('eau')">📦 Archiver l'année 2026</button>
       <div class="result"><span class="r-label">Coût moyen / jour</span><span class="r-val" id="eau_perday">0,00 €</span></div>
       <div class="result warn"><span class="r-label">Estimation fin d'année</span><span class="r-val" id="eau_year">0,00 €</span></div>
       <div class="row" style="margin-top:8px;">
@@ -360,7 +366,7 @@
       <button class="btn secondary" id="chaude_btn" onclick="addReading('chaude')">Ajouter le relevé</button>
       <button class="btn ghost" id="chaude_cancel" style="display:none;" onclick="cancelEdit('chaude')">Annuler la modification</button>
       <button class="btn ghost" onclick="resetToReal('chaude')">Réinitialiser avec les valeurs réelles</button>
-      <button class="btn ghost" onclick="archiveYear('chaude')">📦 Archiver l'année</button>
+      <button class="btn ghost" id="chaude_archive_btn" onclick="archiveYear('chaude')">📦 Archiver l'année 2026</button>
       <div class="result"><span class="r-label">Coût moyen / jour</span><span class="r-val" id="chaude_perday">0,00 €</span></div>
       <div class="result warn"><span class="r-label">Estimation fin d'année</span><span class="r-val" id="chaude_year">0,00 €</span></div>
       <div class="note">Touchez une ligne du tableau pour la modifier. 🗑 pour la supprimer. Index de départ (02/01/2026 = 78 m³) repris de l'index de fin de facture 2025 (Poirier Syndic).</div>
@@ -395,7 +401,7 @@
       <button class="btn secondary" id="chauffage_btn" onclick="addReading('chauffage')">Ajouter le relevé</button>
       <button class="btn ghost" id="chauffage_cancel" style="display:none;" onclick="cancelEdit('chauffage')">Annuler la modification</button>
       <button class="btn ghost" onclick="resetToReal('chauffage')">Réinitialiser avec les valeurs réelles</button>
-      <button class="btn ghost" onclick="archiveYear('chauffage')">📦 Archiver l'année</button>
+      <button class="btn ghost" id="chauffage_archive_btn" onclick="archiveYear('chauffage')">📦 Archiver l'année 2026</button>
       <div class="result"><span class="r-label">Coût moyen / jour</span><span class="r-val" id="chauffage_perday">0,00 €</span></div>
       <div class="result warn"><span class="r-label">Estimation fin d'année</span><span class="r-val" id="chauffage_year">0,00 €</span></div>
       <div class="note">Touchez une ligne du tableau pour la modifier. 🗑 pour la supprimer. Index de départ (02/01/2026 = 13 027 kWh) repris de l'index de fin de facture 2025 (Poirier Syndic).</div>
@@ -430,7 +436,7 @@
       <button class="btn secondary" id="electricite_btn" onclick="addReading('electricite')">Ajouter le relevé</button>
       <button class="btn ghost" id="electricite_cancel" style="display:none;" onclick="cancelEdit('electricite')">Annuler la modification</button>
       <button class="btn ghost" onclick="resetToReal('electricite')">Réinitialiser avec les valeurs réelles</button>
-      <button class="btn ghost" onclick="archiveYear('electricite')">📦 Archiver l'année</button>
+      <button class="btn ghost" id="electricite_archive_btn" onclick="archiveYear('electricite')">📦 Archiver l'année 2026</button>
       <div class="result"><span class="r-label">Coût moyen / jour</span><span class="r-val" id="electricite_perday">0,00 €</span></div>
       <div class="result warn"><span class="r-label">Estimation fin d'année</span><span class="r-val" id="electricite_year">0,00 €</span></div>
       <div class="row" style="margin-top:8px;">
@@ -533,7 +539,7 @@
         <tbody id="rgd_table"></tbody>
       </table></div>
       <button class="btn secondary" onclick="addRGDRow()">Ajouter un relevé</button>
-      <button class="btn ghost" onclick="archiveRGDYear()">📦 Archiver l'année</button>
+      <button class="btn ghost" id="rgd_archive_btn" onclick="archiveRGDYear()">📦 Archiver l'année 2026</button>
       <div class="result"><span class="r-label">Votre quote-part CCG + Chauffage (dernier relevé)</span><span class="r-val" id="rgd_share">0,00 €</span></div>
       <div class="result warn"><span class="r-label">Estimation annuelle (charges copro, hors individualisées)</span><span class="r-val" id="rgd_estimate">0,00 €</span></div>
       <div class="note">⚠️ Les relevés Poirier Syndic incluent des charges facturées d'avance par trimestre/semestre (honoraires syndic, jardin, ascenseur) : une estimation depuis un relevé très en début d'année reste peu fiable — ajoutez les relevés au fil de l'année pour l'affiner, comme pour l'eau/l'électricité. CCG utilise votre tantième réel (225/10000) ; Chauffage le sien (247/10000). Postes non repris ici (Hall A, Compteurs, Sous-sol, Ascenseur A) : reportez-vous au budget prévisionnel voté en AG pour ces lignes.</div>
@@ -553,20 +559,20 @@
     </div>
 
     <div class="card">
-      <div class="head"><h3 style="margin:0;">Suivi mensuel des appels de fonds — 2026</h3></div>
+      <div class="head"><h3 style="margin:0;" id="cpm_title">Suivi mensuel des appels de fonds — 2026</h3></div>
       <div class="sub">Base contractuelle Poirier Syndic (Provisions n°01, n°02, n°03) — montants et statuts modifiables</div>
       <div class="table-scroll"><table>
         <thead><tr><th>Mois</th><th>Montant</th><th>Statut</th></tr></thead>
         <tbody id="cpm_table"></tbody>
       </table></div>
       <button class="btn ghost" onclick="resetCPM()">Réinitialiser avec les valeurs par défaut</button>
-      <div class="result"><span class="r-label">Total base 2026 (12 × 198,35 €)</span><span class="r-val" id="cpm_total">0,00 €</span></div>
+      <div class="result"><span class="r-label" id="cpm_total_label">Total base 2026 (12 × 198,35 €)</span><span class="r-val" id="cpm_total">0,00 €</span></div>
       <div class="row" style="margin-top:8px;">
         <div class="field"><label>Crédit de régularisation N-1 (déjà perçu)</label><input type="number" step="0.01" id="cpm_credit_n1" value="238.56" onchange="renderCPM()"></div>
       </div>
       <div class="result warn"><span class="r-label">Net après crédit N-1 → Provisions appelées</span><span class="r-val" id="cpm_net">0,00 €</span></div>
       <div class="note">Chaque mois affiche la base contractuelle de 198,35 €/mois (595,05 €/trimestre ÷ 3), pour comparer facilement les mois entre eux. Le crédit de régularisation de 238,56 € (comptes 2025 clôturés à l'AG du 27/05/2026) a réduit le prélèvement réel de juin à septembre (juin à 0 €, puis 184,95/184,95/184,94 €) — plutôt que de le répartir mois par mois, il est déduit une seule fois ci-dessus ; c'est ce montant NET qui alimente le champ « Provisions appelées ». Octobre-décembre restent en estimation faute d'appel de fonds T4 reçu. À noter : cette régularisation annuelle tombe habituellement en mai/juin après l'assemblée générale — attendez-vous à un schéma similaire chaque année à cette période.</div>
-      <button class="btn ghost" onclick="archiveCPMYear()">📦 Archiver l'année</button>
+      <button class="btn ghost" id="cpm_archive_btn" onclick="archiveCPMYear()">📦 Archiver l'année 2026</button>
     </div>
 
     <div class="card">
@@ -587,7 +593,7 @@
         <span class="r-label" id="cp_solde_label">Solde estimé</span>
         <span class="r-val" id="cp_solde">— €</span>
       </div>
-      <div class="result"><span class="r-label">Charges 2026 sans déduction du crédit N-1 (base brute)</span><span class="r-val" id="cp_base_brute">— €</span></div>
+      <div class="result"><span class="r-label" id="cp_base_brute_label">Charges 2026 sans déduction du crédit N-1 (base brute)</span><span class="r-val" id="cp_base_brute">— €</span></div>
       <div class="result warn"><span class="r-label" id="cp_solde_brut_label">Solde en fin d'année (hors déduction crédit N-1)</span><span class="r-val" id="cp_solde_brut">— €</span></div>
       <div class="note">Total = quote-part collective + eau chaude + chauffage privatif (lignes "relevés" ci-dessus). Solde = Total − Provisions appelées. Négatif (vert) = en votre faveur, comme sur vos relevés de compte Poirier Syndic ; positif = complément à payer en régularisation. Le total "via MyConso" ci-dessus est fourni pour comparaison (référence officielle du syndic) ; solde et projections restent calculés sur le total "relevés".</div>
     </div>
@@ -631,7 +637,7 @@
       <h3>Évolution du budget total</h3>
       <div class="sub">2026 → 2029, en cumulant la projection de chaque poste</div>
       <div class="bars" id="ba_evol_bars"></div>
-      <div class="note">Énergie (eau, électricité) : tendance de l'onglet Énergie. Charges copropriété : budget 2027 voté (Annexe N°3), puis même tendance que l'onglet Charges copro. Taxe foncière : tendance de l'onglet Taxe foncière.</div>
+      <div class="note">Postes archivés : la colonne 2026 garde le montant archivé, la projection 2027 prend le relais. Énergie (eau, électricité) : tendance de l'onglet Énergie. Charges copropriété : budget 2027 voté (Annexe N°3), puis même tendance que l'onglet Charges copro. Taxe foncière : suit l'onglet Taxe foncière (2026 archivé, estimation 2027 dès l'archivage, puis tendance de l'onglet).</div>
     </div>
 
   </div>
@@ -693,48 +699,121 @@ document.querySelectorAll('.tab').forEach(tab=>{
 });
 
 // ---------- TAXE FONCIERE ----------
-const TF_BASE2025 = {commune:3099, ordures:3099, gemapi:3099, special:3099};
+// Valeur locative de référence (base des 4 lignes commune / ordures / GEMAPI / spéciale) :
+// 3 099 € en 2025 et 3 123 € en 2026 (confirmé par le SDIF). Elle est reportée à l'archivage
+// de l'année (champ « Valeur locative N-1 », modifiable si l'avis indique autre chose).
+const TF_VL_DEFAULT = {2025:3099, 2026:3123};
 const FRAIS_RATIO = 50/1160;
+const TF_HIST_FALLBACK = {2024:1182, 2025:1210}; // avis 2024 et 2025
+let TF_STATE = {year:2026, total:0};
+
+// Année suivie par l'onglet : 2026 tant qu'elle n'est pas archivée, puis 2027, 2028…
+function tfCurrentYear(){
+  const t = ARCHIVES.tf || {};
+  const ys = Object.keys(t).map(Number).filter(y=>y>=2026 && t[y]>0);
+  return ys.length ? Math.max(...ys)+1 : 2026;
+}
+function tfDefaultBase(year){ return year<=2026 ? TF_VL_DEFAULT[2025] : TF_VL_DEFAULT[2026]; }
+
+// Montant de taxe foncière d'une année : archivé (constaté) > estimation de l'année suivie > projection à croissance constante
+function tfValueOf(y){
+  const t = ARCHIVES.tf || {};
+  if(t[y]>0) return {val:+t[y], kind:'archive'};
+  if(TF_HIST_FALLBACK[y]) return {val:TF_HIST_FALLBACK[y], kind:'archive'};
+  if(y===TF_STATE.year) return {val:TF_STATE.total, kind:'estimate'};
+  if(y>TF_STATE.year){
+    const trend = parseFloat((document.getElementById('tf_trend')||{}).value)||0;
+    return {val:TF_STATE.total*Math.pow(1+trend/100, y-TF_STATE.year), kind:'proj'};
+  }
+  return null;
+}
+
+// Calcul détaillé brut : valeur locative revalorisée × 4 taux + frais de gestion (avant calage sur l'avis N-1)
+function tfRawDetail(baseVL, revalo, tC, tO, tG, tS){
+  const f = b => b*(1+revalo/100);
+  const subtotal = f(baseVL)*tC/100 + f(baseVL)*tO/100 + f(baseVL)*tG/100 + f(baseVL)*tS/100;
+  return subtotal + subtotal*FRAIS_RATIO;
+}
+function tfReadParams(){
+  const num = id => parseFloat(document.getElementById(id).value)||0;
+  return {
+    revalo:num('tf_revalo'), tC:num('tf_taux_commune'), tO:num('tf_taux_ordures'),
+    tG:num('tf_taux_gemapi'), tS:num('tf_taux_special'),
+    officiel:num('tf_officiel'), baseVL:num('tf_base'),
+    calib:(parseFloat(document.getElementById('tf_calib').value)||1)
+  };
+}
 
 function computeTF(){
-  const revalo = parseFloat(document.getElementById('tf_revalo').value)||0;
-  const tC = parseFloat(document.getElementById('tf_taux_commune').value)||0;
-  const tO = parseFloat(document.getElementById('tf_taux_ordures').value)||0;
-  const tG = parseFloat(document.getElementById('tf_taux_gemapi').value)||0;
-  const tS = parseFloat(document.getElementById('tf_taux_special').value)||0;
-  const officiel = parseFloat(document.getElementById('tf_officiel').value)||0;
+  const Y = tfCurrentYear();
+  const p = tfReadParams();
+  const rawDetail = tfRawDetail(p.baseVL, p.revalo, p.tC, p.tO, p.tG, p.tS);
+  // Le calage (×1 en 2026) rattache le calcul détaillé au dernier montant réellement archivé
+  const detailCalc = rawDetail*p.calib;
+  const total = p.officiel>0 ? p.officiel : detailCalc;
 
-  const f = b => b*(1+revalo/100);
-  const cotC = f(TF_BASE2025.commune)*tC/100;
-  const cotO = f(TF_BASE2025.ordures)*tO/100;
-  const cotG = f(TF_BASE2025.gemapi)*tG/100;
-  const cotS = f(TF_BASE2025.special)*tS/100;
-  const subtotal = cotC+cotO+cotG+cotS;
-  const frais = subtotal*FRAIS_RATIO;
-  const detailCalc = subtotal+frais;
+  TF_STATE = {year:Y, total:total};
+  renderTFLabels(Y, p);
 
-  const total = officiel>0 ? officiel : detailCalc;
+  document.getElementById('tf_total').textContent = fmt(total);
+  document.getElementById('tf_detail').textContent = fmt(detailCalc);
+  const prev = tfValueOf(Y-1);
+  document.getElementById('tf_evol').textContent = (prev && prev.val>0) ? pct((total-prev.val)/prev.val*100) : '—';
+  renderTFHistory(Y, total);
 
-  document.getElementById('tf_total2026').textContent = fmt(total);
-  document.getElementById('tf_detail2026').textContent = fmt(detailCalc);
-  const evol = ((total-1210)/1210)*100;
-  document.getElementById('tf_evol2026').textContent = pct(evol);
-  document.getElementById('tf_hist2026').textContent = fmt(total);
-  document.getElementById('tf_hist_evol2026').textContent = pct(evol);
-
-  const trend = parseFloat(document.getElementById('tf_trend').value)||0;
-  const y2027 = total*(1+trend/100);
-  const y2028 = y2027*(1+trend/100);
-
-  drawBars('tf_bars', [
-    {yr:'2024',val:(ARCHIVES.tf && ARCHIVES.tf[2024]) || 1182,proj:false},
-    {yr:'2025',val:(ARCHIVES.tf && ARCHIVES.tf[2025]) || 1210,proj:false},
-    {yr:'2026',val:total,proj:false},
-    {yr:'2027',val:y2027,proj:true},
-    {yr:'2028',val:y2028,proj:true},
-  ]);
+  const trendBars = [];
+  for(let y=Y-2; y<=Y+2; y++){
+    const v = tfValueOf(y);
+    if(!v) continue;
+    // Année suivie : barre « projection » tant qu'aucun montant officiel n'est saisi (2026 reste en barre pleine, comme avant)
+    const proj = v.kind==='proj' || (v.kind==='estimate' && Y>2026 && !(p.officiel>0));
+    trendBars.push({yr:String(y), val:v.val, proj:proj});
+  }
+  drawBars('tf_bars', trendBars);
   updateBudgetAnnuel();
   return total;
+}
+
+function renderTFHistory(Y, total){
+  const body = document.getElementById('tf_hist_body');
+  if(!body) return;
+  const list = [];
+  for(let y=2024; y<Y; y++){
+    const v = tfValueOf(y);
+    if(v) list.push({y:y, val:v.val, est:false});
+  }
+  list.push({y:Y, val:total, est:true});
+  body.innerHTML = list.map((r,i)=>{
+    const prev = i>0 ? list[i-1].val : 0;
+    const evol = prev>0 ? pct((r.val-prev)/prev*100) : '—';
+    return '<tr><td>'+r.y+(r.est?'<span class="tf-est">estimation</span>':'')+'</td><td>'+fmt(r.val)+'</td><td>'+evol+'</td></tr>';
+  }).join('');
+}
+
+// Libellés qui suivent l'année suivie (2026 → 2027 après archivage…)
+function renderTFLabels(Y, p){
+  const set = (id, t) => { const el = document.getElementById(id); if(el) el.textContent = t; };
+  const baseTxt = Math.round(p.baseVL).toLocaleString('fr-FR')+' €';
+  set('tf_proj_title', 'Projection '+Y);
+  set('tf_total_label', 'Total estimé '+Y);
+  set('tf_evol_label', 'Évolution vs '+(Y-1));
+  set('tf_base_label', 'Valeur locative '+(Y-1)+' (€)');
+  set('tf_archive_btn', "📦 Archiver l'année "+Y);
+  set('tf_evol_sub', (Y-2)+' – '+(Y+2)+', projection au-delà de '+Y+' à taux de croissance constant');
+  set('tf_trend_label', 'Croissance annuelle '+(Y+1)+'-'+(Y+2)+' (%)');
+  set('tf_note_base', 'Base = valeur locative'+(Y<=2027?' confirmée':'')+' ('+baseTxt+' en '+(Y-1)+', revalorisée puis appliquée aux 4 taux commune/ordures/GEMAPI/spéciale), + frais de gestion (≈4,31 %, ratio constaté 2025). Tant que "Estimation officielle DGFiP" est renseignée, c\'est elle qui prime comme total '+Y+' — le calcul détaillé reste affiché à titre de recoupement. Ces paramètres sont aussi sauvegardés automatiquement à la saisie ; le bouton sert de confirmation explicite.');
+  set('tf_calib_note', (Y>2026 && Math.abs(p.calib-1)>0.0005) ? ' — calé sur le montant '+(Y-1)+' archivé (×'+p.calib.toLocaleString('fr-FR',{maximumFractionDigits:3})+')' : '');
+
+  const sdif = document.getElementById('tf_note_sdif');
+  if(sdif) sdif.style.display = (Y===2026) ? '' : 'none';
+  const next = document.getElementById('tf_note_next');
+  if(next){
+    next.style.display = (Y===2026) ? 'none' : '';
+    const prevVal = (tfValueOf(Y-1)||{}).val || 0;
+    next.innerHTML = p.officiel>0
+      ? 'Montant officiel '+Y+' renseigné : il prime sur le calcul détaillé, qui reste affiché à titre de recoupement.'
+      : (Y-1)+' est archivée ('+fmt(prevVal)+'). Pas encore de montant officiel pour '+Y+' : le total est une <b>projection</b> — valeur locative '+(Y-1)+' ('+baseTxt+') revalorisée, taux et revalorisation repris de '+(Y-1)+', calée sur le montant '+(Y-1)+' archivé. Deux hypothèses à mettre à jour dès qu\'elles sont connues : la revalorisation de la base (coefficient publié en fin d\'année) et les taux votés '+Y+'. Saisissez « Estimation officielle DGFiP » dès réception d\'un montant officiel.';
+  }
 }
 
 function drawBars(elId, data){
@@ -760,7 +839,18 @@ function getTFConfig(){
     tG: document.getElementById('tf_taux_gemapi').value,
     tS: document.getElementById('tf_taux_special').value,
     trend: document.getElementById('tf_trend').value,
+    base: document.getElementById('tf_base').value,
+    calib: document.getElementById('tf_calib').value,
   };
+}
+// Sauvegardes d'avant cette version (sans « base » ni « calib ») : si 2026 avait déjà été archivée,
+// on repart de la valeur locative 2026 et on cale le calcul détaillé sur le montant archivé.
+function tfLegacyCalib(Y, cfg){
+  const arch = (ARCHIVES.tf||{})[Y-1];
+  if(Y!==2027 || !(arch>0)) return 1;
+  const n = v => parseFloat(v)||0;
+  const raw = tfRawDetail(tfDefaultBase(Y-1), n(cfg.revalo), n(cfg.tC), n(cfg.tO), n(cfg.tG), n(cfg.tS));
+  return raw>0 ? +(arch/raw).toFixed(6) : 1;
 }
 function setTFConfig(cfg){
   document.getElementById('tf_revalo').value = cfg.revalo;
@@ -770,6 +860,9 @@ function setTFConfig(cfg){
   document.getElementById('tf_taux_gemapi').value = cfg.tG;
   document.getElementById('tf_taux_special').value = cfg.tS;
   document.getElementById('tf_trend').value = cfg.trend;
+  const Y = tfCurrentYear();
+  document.getElementById('tf_base').value = (cfg.base!==undefined && cfg.base!=='') ? cfg.base : tfDefaultBase(Y);
+  document.getElementById('tf_calib').value = (cfg.calib!==undefined && cfg.calib!=='') ? cfg.calib : tfLegacyCalib(Y, cfg);
 }
 
 async function saveTF(showToast){
@@ -781,16 +874,23 @@ const debouncedSaveTF = debounce(()=>saveTF(false), 500);
 function validateTF(){ computeTF(); saveTF(true); }
 
 function archiveTFYear(){
-  const year = 2026;
-  const total = parseFloat((document.getElementById('tf_total2026')||{}).textContent.replace(/[^\d,-]/g,'').replace(',','.'))||0;
-  if(!confirm("Archiver "+year+" pour la taxe foncière avec un total de "+fmt(total)+" ? L'estimation officielle DGFiP repart à 0 (à renseigner dès réception du prochain avis) ; les taux restent en place comme point de départ.")) return;
+  const year = tfCurrentYear();
+  const total = computeTF();
+  if(!(total>0)){ toast('Aucun montant à archiver'); return; }
+  const p = tfReadParams();
+  const rawDetail = tfRawDetail(p.baseVL, p.revalo, p.tC, p.tO, p.tG, p.tS);
+  const nextBase = Math.round(p.baseVL*(1+p.revalo/100));   // valeur locative de l'année archivée = base de l'année suivante
+  const nextCalib = rawDetail>0 ? +(total/rawDetail).toFixed(6) : 1;
+  if(!confirm("Archiver "+year+" pour la taxe foncière avec un total de "+fmt(total)+" ? Le suivi passe à "+(year+1)+" : la valeur locative "+year+" ("+nextBase.toLocaleString('fr-FR')+" €) devient la base, l'estimation officielle DGFiP repart à 0 (à renseigner dès réception du prochain avis) ; les taux et la revalorisation restent en place comme point de départ.")) return;
   if(!ARCHIVES.tf) ARCHIVES.tf = {};
   ARCHIVES.tf[year] = +total.toFixed(2);
   saveArchives('tf');
+  document.getElementById('tf_base').value = nextBase;
+  document.getElementById('tf_calib').value = nextCalib;
   document.getElementById('tf_officiel').value = '0';
   saveTF(false);
   computeTF();
-  toast(year+' archivé pour la taxe foncière ✓');
+  toast(year+' archivé pour la taxe foncière ✓ — projection '+(year+1)+' prête');
 }
 
 async function loadTF(){
@@ -949,9 +1049,26 @@ function renderUnit(u){
   const aboCost = abo * 12/365 * elapsedDays;
   const perDay = elapsedDays>0 ? (totalCost+aboCost)/elapsedDays : 0;
 
-  const yearEnd = new Date('2026-12-31');
+  // Année suivie par ce poste : 2026 tant qu'il n'est pas archivé, puis 2027, 2028…
+  const Yu = archYearOf(u);
+  const yearEnd = new Date(Yu+'-12-31');
   const remainingDays = Math.max(0, Math.round((yearEnd-new Date(lastR.date))/86400000));
-  const yearEstimateCalc = totalCost + aboCost + perDay*remainingDays;
+  let yearEstimateCalc = totalCost + aboCost + perDay*remainingDays;   // 2026 : inchangé
+  let isProjection = false;
+  if(Yu>2026){
+    // Après archivage le suivi repart du dernier relevé : on n'extrapole que s'il y a assez de jours réellement
+    // couverts dans l'année suivie ; sinon projection = montant archivé de l'année précédente × (1 + croissance).
+    const yStart = new Date(Yu+'-01-01');
+    const covStart = Math.max(new Date(first.date), yStart);
+    const covEnd = Math.min(new Date(lastR.date), yearEnd);
+    const coveredDays = Math.max(0, Math.round((covEnd-covStart)/86400000));
+    const daysInYear = Math.round((yearEnd-yStart)/86400000)+1;
+    const prevArch = (ARCHIVES[u] && ARCHIVES[u][Yu-1]) || 0;
+    const trendNrg = parseFloat((document.getElementById('nrg_trend')||{}).value)||0;
+    if(coveredDays>=ENERGY_MIN_DAYS && perDay>0){ yearEstimateCalc = perDay*daysInYear; }
+    else if(prevArch>0){ yearEstimateCalc = prevArch*(1+trendNrg/100); isProjection = true; }
+    else { yearEstimateCalc = perDay*daysInYear; }
+  }
 
   const factureEl = document.getElementById(u+'_facture_2027');
   const factureOverride = factureEl ? (parseFloat(factureEl.value)||0) : 0;
@@ -973,6 +1090,12 @@ function renderUnit(u){
 
   document.getElementById(u+'_perday').textContent = fmt(perDay);
   document.getElementById(u+'_year').textContent = fmt(yearEstimate);
+  // Libellés qui suivent l'année suivie (identiques à avant tant que le poste n'est pas archivé)
+  const yearLabelEl = document.getElementById(u+'_year').previousElementSibling;
+  if(yearLabelEl) yearLabelEl.textContent = "Estimation fin d'année"+(Yu>2026?' '+Yu:'')+((isProjection && !(factureOverride>0) && !(moyenneOverride>0))?' (projection)':'');
+  const archBtnEl = document.getElementById(u+'_archive_btn');
+  if(archBtnEl) archBtnEl.textContent = "📦 Archiver l'année "+Yu;
+  if(factureEl && factureEl.previousElementSibling) factureEl.previousElementSibling.textContent = 'Facture annuelle reçue (€, ~mars '+(Yu+1)+')';
 
   // Cohérence MyConso (référence officielle du syndic) vs vos relevés manuels — recoupement uniquement,
   // ne remplace jamais l'estimation ci-dessus qui reste basée sur vos relevés.
@@ -982,10 +1105,12 @@ function renderUnit(u){
     const myVal = parseFloat(myconsoEl.value)||0;
     const myDateEl = document.getElementById(u+'_myconso_2026_date');
     const myAsOf = (myDateEl && myDateEl.value) ? myDateEl.value : '2026-09-10';
+    const myYear = /^\d{4}/.test(myAsOf) ? myAsOf.slice(0,4) : '2026';
+    if(myconsoEl.previousElementSibling) myconsoEl.previousElementSibling.textContent = myYear+' à ce jour ('+UNIT_LABEL[u]+')';
     const dec = u==='chauffage' ? 0 : 3;
     let myEstimate = 0;
     if(myVal>0){
-      const myElapsed = daysBetween('2026-01-01', myAsOf);
+      const myElapsed = daysBetween(myYear+'-01-01', myAsOf);
       myEstimate = (myVal*prix)/myElapsed*365;
     }
     if(u==='chaude' || u==='chauffage') EnergyYearEstimatesMyConso[u] = myEstimate;
@@ -1016,6 +1141,30 @@ const REF_2025 = { chaude: 530.24, chauffage: 479.50, eau_m3_annuel: 81 };
 // ---------- ARCHIVAGE ANNUEL ----------
 let ARCHIVES = {eau:{}, chaude:{}, chauffage:{}, electricite:{}, copro:{}, rgd:{2025:1517.26}, tf:{}};
 
+// Année suivie par un poste archivable ('eau','chaude','chauffage','electricite','copro','rgd') :
+// 2026 tant qu'il n'est pas archivé, puis 2027, 2028… (même logique que la taxe foncière)
+function archYearOf(key){
+  const t = ARCHIVES[key] || {};
+  const ys = Object.keys(t).map(Number).filter(y=>y>=2026 && t[y]>0);
+  return ys.length ? Math.max(...ys)+1 : 2026;
+}
+// Montant d'un poste d'énergie pour une année : archivé > estimation de l'année suivie > projection à croissance constante
+function energyValueOf(u, y){
+  const t = ARCHIVES[u] || {};
+  if(t[y]>0) return +t[y];
+  const Yu = archYearOf(u);
+  const est = EnergyYearEstimates[u] || 0;
+  if(y===Yu) return est;
+  if(y>Yu){
+    const trend = parseFloat((document.getElementById('nrg_trend')||{}).value)||0;
+    return est*Math.pow(1+trend/100, y-Yu);
+  }
+  return 0;
+}
+// Après archivage, on n'extrapole depuis les relevés qu'avec au moins 30 jours couverts dans l'année suivie
+const ENERGY_MIN_DAYS = 30;
+const UNIT_NAME = {eau:"l'eau courante", chaude:"l'eau chaude sanitaire", chauffage:"le chauffage collectif", electricite:"l'électricité"};
+
 async function loadArchives(){
   for(const u of [...UNITS, 'copro', 'rgd', 'tf']){
     const val = await storageGet('archive-'+u);
@@ -1030,23 +1179,25 @@ async function saveArchives(u){
 function archiveYear(u){
   const rows = DATA[u];
   if(rows.length<2){ toast('Pas assez de relevés pour archiver'); return; }
-  const yearEstimate = EnergyYearEstimates[u]||0;
+  const yearEstimate = renderUnit(u) || 0;
+  if(!(yearEstimate>0)){ toast('Aucun montant à archiver'); return; }
   const lastR = rows[rows.length-1];
-  const year = new Date(lastR.date).getFullYear();
-  if(!confirm('Archiver '+year+' pour '+u+' avec un total de '+fmt(yearEstimate)+' ? Le suivi repartira du dernier relevé ('+lastR.date+', index '+lastR.index+').')) return;
+  const year = archYearOf(u);   // année suivie (2026, puis 2027…), et non plus l'année du dernier relevé
+  if(!confirm('Archiver '+year+' pour '+UNIT_NAME[u]+' avec un total de '+fmt(yearEstimate)+' ? Le suivi repartira du dernier relevé ('+lastR.date+', index '+lastR.index+') et l\'estimation passera sur '+(year+1)+' (projection tant que vous n\'avez pas assez de relevés '+(year+1)+').')) return;
+  if(!ARCHIVES[u]) ARCHIVES[u] = {};
   ARCHIVES[u][year] = +yearEstimate.toFixed(2);
   saveArchives(u);
   DATA[u] = [{date:lastR.date, index:lastR.index}];
   saveEnergy(u);
+  // La facture annuelle saisie concernait l'année archivée : elle repart à 0 pour la suivante
+  const factureEl = document.getElementById(u+'_facture_2027');
+  if(factureEl){ factureEl.value = '0'; saveEnergyTariffs(); }
   cancelEdit(u);
-  renderUnit(u);
-  renderNRGEvolution();
   updateTotal();
-  toast(year+' archivé pour '+u+' ✓ — nouveau départ');
+  toast(year+' archivé pour '+UNIT_NAME[u]+' ✓ — projection '+(year+1)+' prête');
 }
 
 function renderNRGEvolution(){
-  const trend = parseFloat(document.getElementById('nrg_trend').value)||0;
   const prixEau = parseFloat(document.getElementById('eau_prix').value)||0;
 
   const configs = [
@@ -1055,40 +1206,31 @@ function renderNRGEvolution(){
     {u:'chauffage', bars:'chauffage5_bars', base2025: (ARCHIVES.chauffage && ARCHIVES.chauffage[2025]) || REF_2025.chauffage},
   ];
 
+  // 2026 : montant archivé si le poste est clôturé, sinon estimation ; 2027 : estimation de l'année suivie après archivage ; puis tendance
   configs.forEach(c=>{
-    const base2026 = (ARCHIVES[c.u] && ARCHIVES[c.u][2026]) || EnergyYearEstimates[c.u];
-    const y2027 = base2026*(1+trend/100);
-    const y2028 = y2027*(1+trend/100);
-    const y2029 = y2028*(1+trend/100);
     drawBars(c.bars, [
       {yr:'2025', val:c.base2025, proj:false},
-      {yr:'2026', val:base2026, proj:false},
-      {yr:'2027', val:y2027, proj:true},
-      {yr:'2028', val:y2028, proj:true},
-      {yr:'2029', val:y2029, proj:true},
+      {yr:'2026', val:energyValueOf(c.u,2026), proj:false},
+      {yr:'2027', val:energyValueOf(c.u,2027), proj:true},
+      {yr:'2028', val:energyValueOf(c.u,2028), proj:true},
+      {yr:'2029', val:energyValueOf(c.u,2029), proj:true},
     ]);
   });
 
   // Électricité : pas d'historique 2025 (nouveau poste), l'évolution démarre en 2026
-  const base2026e = (ARCHIVES.electricite && ARCHIVES.electricite[2026]) || EnergyYearEstimates.electricite || 0;
-  const y2027e = base2026e*(1+trend/100);
-  const y2028e = y2027e*(1+trend/100);
-  const y2029e = y2028e*(1+trend/100);
   drawBars('electricite5_bars', [
-    {yr:'2026', val:base2026e, proj:false},
-    {yr:'2027', val:y2027e, proj:true},
-    {yr:'2028', val:y2028e, proj:true},
-    {yr:'2029', val:y2029e, proj:true},
+    {yr:'2026', val:energyValueOf('electricite',2026), proj:false},
+    {yr:'2027', val:energyValueOf('electricite',2027), proj:true},
+    {yr:'2028', val:energyValueOf('electricite',2028), proj:true},
+    {yr:'2029', val:energyValueOf('electricite',2029), proj:true},
   ]);
 }
 
 function updateTotal(){
+  UNITS.forEach(u=>{ EnergyYearEstimates[u] = renderUnit(u); });
+  // Total 2026 : chaque poste au montant archivé s'il est clôturé, sinon à l'estimation en cours
   let sum=0;
-  UNITS.forEach(u=>{
-    const est = renderUnit(u);
-    EnergyYearEstimates[u] = est;
-    sum += est;
-  });
+  UNITS.forEach(u=>{ sum += energyValueOf(u,2026); });
   document.getElementById('total_year').textContent = fmt(sum);
   renderNRGEvolution();
   computeCopro();
@@ -1252,12 +1394,14 @@ function updateBudgetAnnuel(){
   const tbody = document.getElementById('ba_table');
   if(!tbody) return;
 
-  const eau = EnergyYearEstimates.eau||0;
-  const elec = EnergyYearEstimates.electricite||0;
-  const chaude = EnergyYearEstimates.chaude||0;
-  const chauffage = EnergyYearEstimates.chauffage||0;
-  const coproNet = parseFloat((document.getElementById('cp_provisions')||{}).value)||0;
-  const tf = parseFmt((document.getElementById('tf_total2026')||{}).textContent);
+  // Budget 2026 : chaque poste au montant archivé de 2026 s'il est clôturé, sinon à l'estimation en cours
+  const eau = energyValueOf('eau', 2026);
+  const elec = energyValueOf('electricite', 2026);
+  const chaude = energyValueOf('chaude', 2026);
+  const chauffage = energyValueOf('chauffage', 2026);
+  const coproArch = ARCHIVES.copro && ARCHIVES.copro[2026];
+  const coproNet = coproArch>0 ? +coproArch : (parseFloat((document.getElementById('cp_provisions')||{}).value)||0);
+  const tf = (tfValueOf(2026)||{}).val || 0;   // TF 2026 : montant archivé si l'année est clôturée, sinon estimation en cours
 
   const total = eau + elec + coproNet + tf;
 
@@ -1278,25 +1422,23 @@ function updateBudgetAnnuel(){
 
   drawBars('ba_bars', rows.map(([,shortLabel,val])=>({yr:shortLabel, val, proj:false})));
 
-  const nrgTrend = parseFloat((document.getElementById('nrg_trend')||{}).value)||0;
-  const tfTrend = parseFloat((document.getElementById('tf_trend')||{}).value)||0;
   const cpTrend = parseFloat((document.getElementById('cp_trend')||{}).value)||0;
   const cpTotal2027 = parseFmt((document.getElementById('cp_total')||{}).textContent);
 
-  const eau2027 = eau*(1+nrgTrend/100);
-  const elec2027 = elec*(1+nrgTrend/100);
-  const tf2027 = tf*(1+tfTrend/100);
+  const eau2027 = energyValueOf('eau', 2027);
+  const elec2027 = energyValueOf('electricite', 2027);
+  const tf2027 = (tfValueOf(2027)||{}).val || 0;
   const total2027 = eau2027+elec2027+cpTotal2027+tf2027;
 
-  const eau2028 = eau2027*(1+nrgTrend/100);
-  const elec2028 = elec2027*(1+nrgTrend/100);
-  const tf2028 = tf2027*(1+tfTrend/100);
+  const eau2028 = energyValueOf('eau', 2028);
+  const elec2028 = energyValueOf('electricite', 2028);
+  const tf2028 = (tfValueOf(2028)||{}).val || 0;
   const cp2028 = cpTotal2027*(1+cpTrend/100);
   const total2028 = eau2028+elec2028+cp2028+tf2028;
 
-  const eau2029 = eau2028*(1+nrgTrend/100);
-  const elec2029 = elec2028*(1+nrgTrend/100);
-  const tf2029 = tf2028*(1+tfTrend/100);
+  const eau2029 = energyValueOf('eau', 2029);
+  const elec2029 = energyValueOf('electricite', 2029);
+  const tf2029 = (tfValueOf(2029)||{}).val || 0;
   const cp2029 = cp2028*(1+cpTrend/100);
   const total2029 = eau2029+elec2029+cp2029+tf2029;
 
@@ -1383,6 +1525,13 @@ function renderCPM(){
   if(netEl) netEl.textContent = fmt(net);
   const provEl = document.getElementById('cp_provisions');
   if(provEl) provEl.value = net.toFixed(2);
+  // Libellés qui suivent l'année suivie (2026, puis 2027 après archivage)
+  const Ycp = archYearOf('copro');
+  const setT = (id,t)=>{ const el = document.getElementById(id); if(el) el.textContent = t; };
+  setT('cpm_title', 'Suivi mensuel des appels de fonds — '+Ycp);
+  setT('cpm_total_label', 'Total base '+Ycp+' (12 × 198,35 €)');
+  setT('cpm_archive_btn', "📦 Archiver l'année "+Ycp);
+  setT('cp_base_brute_label', 'Charges '+Ycp+' sans déduction du crédit N-1 (base brute)');
   computeCopro();
 }
 
@@ -1390,8 +1539,9 @@ function archiveCPMYear(){
   const totalBase = CPM.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
   const credit = parseFloat((document.getElementById('cpm_credit_n1')||{}).value)||0;
   const net = totalBase - credit;
-  const year = 2026;
-  if(!confirm("Archiver "+year+" pour les charges copro avec un total net de "+fmt(net)+" (base "+fmt(totalBase)+" - crédit "+fmt(credit)+") ? Le suivi mensuel repart avec le statut Estimation pour la nouvelle année.")) return;
+  const year = archYearOf('copro');   // année suivie (2026, puis 2027…)
+  if(!CPM.some(r=>r.status==='reel')){ toast('Aucun mois « Réel » à archiver pour '+year); return; }
+  if(!confirm("Archiver "+year+" pour les charges copro avec un total net de "+fmt(net)+" (base "+fmt(totalBase)+" - crédit "+fmt(credit)+") ? Le suivi mensuel repart avec le statut Estimation pour "+(year+1)+".")) return;
   if(!ARCHIVES.copro) ARCHIVES.copro = {};
   ARCHIVES.copro[year] = +net.toFixed(2);
   saveArchives('copro');
@@ -1399,7 +1549,8 @@ function archiveCPMYear(){
   saveCPM();
   document.getElementById('cpm_credit_n1').value = '0';
   renderCPM();
-  toast(year+' archivé pour les charges copro ✓');
+  updateBudgetAnnuel();
+  toast(year+' archivé pour les charges copro ✓ — suivi '+(year+1)+' prêt');
 }
 
 // ---------- RELEVÉS GÉNÉRAUX DES DÉPENSES (comme énergie) ----------
@@ -1431,6 +1582,29 @@ function deleteRGD(i){
   saveRGD();
   renderRGD();
 }
+// Estimation annuelle des relevés généraux : depuis le dernier relevé (année de ce relevé) ; après archivage,
+// tant qu'aucun relevé de l'année suivante n'existe, projection = montant archivé × (1 + croissance charges copro).
+function rgdCompute(){
+  const Y = archYearOf('rgd');
+  if(RGD.length===0) return {share:0, estimate:0, year:Y, projection:false};
+  const last = RGD[RGD.length-1];
+  const ccgShare = (parseFloat(last.ccg)||0)*225/10000;
+  const chauffShare = (parseFloat(last.chauffage)||0)*247/10000;
+  const share = ccgShare+chauffShare;
+  const lastYear = new Date(last.date).getFullYear();
+  const prevArch = (ARCHIVES.rgd && ARCHIVES.rgd[Y-1]) || 0;
+  if(Y>2026 && lastYear<Y && prevArch>0){
+    const trend = parseFloat((document.getElementById('cp_trend')||{}).value)||0;
+    return {share:share, estimate:prevArch*(1+trend/100), year:Y, projection:true};
+  }
+  const yearStart = lastYear+'-01-01';
+  const elapsedDays = daysBetween(yearStart, last.date);
+  const perDay = share/elapsedDays;
+  const yearEnd = new Date(lastYear+'-12-31');
+  const remainingDays = Math.max(0, Math.round((yearEnd-new Date(last.date))/86400000));
+  return {share:share, estimate:share + perDay*remainingDays, year:lastYear, projection:false};
+}
+
 function renderRGD(){
   const tbody = document.getElementById('rgd_table');
   if(!tbody) return;
@@ -1442,43 +1616,36 @@ function renderRGD(){
     <td><button class="icon-btn del" onclick="deleteRGD(${i})">🗑</button></td>
   </tr>`).join('');
 
-  if(RGD.length===0){
-    document.getElementById('rgd_share').textContent = fmt(0);
-    document.getElementById('rgd_estimate').textContent = fmt(0);
-    return;
-  }
-  const last = RGD[RGD.length-1];
-  const ccgShare = (parseFloat(last.ccg)||0)*225/10000;
-  const chauffShare = (parseFloat(last.chauffage)||0)*247/10000;
-  const share = ccgShare+chauffShare;
-  document.getElementById('rgd_share').textContent = fmt(share);
-
-  const yearStart = new Date(last.date).getFullYear()+'-01-01';
-  const elapsedDays = daysBetween(yearStart, last.date);
-  const perDay = share/elapsedDays;
-  const yearEnd = new Date(new Date(last.date).getFullYear()+'-12-31');
-  const remainingDays = Math.max(0, Math.round((yearEnd-new Date(last.date))/86400000));
-  const estimate = share + perDay*remainingDays;
-  document.getElementById('rgd_estimate').textContent = fmt(estimate);
+  const c = rgdCompute();
+  document.getElementById('rgd_share').textContent = fmt(c.share);
+  document.getElementById('rgd_estimate').textContent = fmt(c.estimate);
+  const labEl = document.getElementById('rgd_estimate').previousElementSibling;
+  if(labEl) labEl.textContent = 'Estimation annuelle'+(c.year>2026?' '+c.year:'')+(c.projection?' — projection':'')+' (charges copro, hors individualisées)';
+  const btn = document.getElementById('rgd_archive_btn');
+  if(btn) btn.textContent = "📦 Archiver l'année "+c.year;
 }
 
 function archiveRGDYear(){
   if(RGD.length===0){ toast('Ajoutez au moins un relevé'); return; }
   const last = RGD[RGD.length-1];
-  const year = new Date(last.date).getFullYear();
-  const estimateTxt = document.getElementById('rgd_estimate').textContent;
-  if(!confirm('Archiver '+year+' pour les relevés généraux avec une estimation de '+estimateTxt+' ? Le suivi repart pour la nouvelle année (dernier relevé conservé comme point de départ).')) return;
+  const c = rgdCompute();
+  const year = c.year;
+  if(c.projection){ toast('Ajoutez un relevé '+year+' avant d\'archiver'); return; }
+  if(!(c.estimate>0)){ toast('Aucune estimation à archiver'); return; }
+  if(!confirm('Archiver '+year+' pour les relevés généraux avec une estimation de '+fmt(c.estimate)+' ? Le suivi repart pour '+(year+1)+' (dernier relevé conservé comme point de départ) : l\'estimation passe en projection tant que vous n\'avez pas de relevé '+(year+1)+'.')) return;
   if(!ARCHIVES.rgd) ARCHIVES.rgd = {};
-  ARCHIVES.rgd[year] = parseFloat(estimateTxt.replace(/[^\d,-]/g,'').replace(',','.'))||0;
+  ARCHIVES.rgd[year] = +c.estimate.toFixed(2);
   saveArchives('rgd');
   RGD = [{date:last.date, ccg:last.ccg, chauffage:last.chauffage, total:last.total}];
   saveRGD();
   renderRGD();
-  toast(year+' archivé pour les relevés généraux ✓');
+  toast(year+' archivé pour les relevés généraux ✓ — projection '+(year+1)+' prête');
 }
 
 function getEnergyTariffs(){
   const out = {};
+  const nrgTrendEl = document.getElementById('nrg_trend');
+  if(nrgTrendEl) out['nrg_trend'] = nrgTrendEl.value;
   UNITS.forEach(u=>{
     out[u+'_prix'] = document.getElementById(u+'_prix').value;
     const aboEl = document.getElementById(u+'_abo');
@@ -1516,7 +1683,7 @@ document.querySelectorAll('#panel-copro input').forEach(el=>el.addEventListener(
 document.getElementById('cp_budget_global').addEventListener('input', distributeBudgetGlobal);
 document.getElementById('cp_chauffcol').addEventListener('input', recalcChauffagePrice);
 
-document.getElementById('nrg_trend').addEventListener('input', renderNRGEvolution);
+document.getElementById('nrg_trend').addEventListener('input', ()=>{ updateTotal(); debouncedSaveEnergyTariffs(); });
 
 UNITS.forEach(u=>{
   document.getElementById(u+'_prix').addEventListener('input', ()=>{ updateTotal(); debouncedSaveEnergyTariffs(); });
@@ -1551,6 +1718,8 @@ function buildPayload(){
   };
 }
 function applyPayload(payload){
+  // Archives en premier : l'année suivie par l'onglet Taxe foncière (2026, puis 2027…) en dépend
+  if(payload.archives) ARCHIVES = payload.archives;
   if(payload.tf) setTFConfig(payload.tf);
   if(payload.energyTariffs) setEnergyTariffs(payload.energyTariffs);
   if(payload.coproConfig) setCoproConfig(payload.coproConfig);
@@ -1560,7 +1729,6 @@ function applyPayload(payload){
   if(payload.electricite) DATA.electricite = payload.electricite;
   if(payload.cpm) CPM = payload.cpm;
   if(payload.rgd) RGD = payload.rgd;
-  if(payload.archives) ARCHIVES = payload.archives;
   UNITS.forEach(u=>{
     if(!DATA[u] || DATA[u].length===0){ DATA[u] = REAL_SEEDS[u].slice(); }
     if(!ARCHIVES[u]){ ARCHIVES[u] = {}; }
