@@ -145,6 +145,15 @@
 
   @media(min-width:1600px){
     .panel.active{grid-template-columns:repeat(3,1fr);}
+    /* Énergie : les 4 postes se suivent (Eau | Eau chaude, puis Chauffage | Électricité), les synthèses
+       (évolution 5 ans, total) sont regroupées dans la 3e colonne — sinon Électricité repartait seule à gauche */
+    #panel-energie.active{grid-template-areas:"eau chaude evo" "chauffage elec total";}
+    #panel-energie .card[data-u="eau"]{grid-area:eau;}
+    #panel-energie .card[data-u="chaude"]{grid-area:chaude;}
+    #panel-energie .card[data-u="chauffage"]{grid-area:chauffage;}
+    #panel-energie .card[data-u="electricite"]{grid-area:elec;}
+    #panel-energie #nrg_evo_card{grid-area:evo;}
+    #panel-energie #nrg_total_card{grid-area:total;}
   }
 
   /* ===== SHARED COMPONENTS (mobile + PC) ===== */
@@ -446,7 +455,7 @@
       <div class="note">Touchez une ligne du tableau pour la modifier. 🗑 pour la supprimer. Relevé de départ = facture Alpiq CYCL-4975386 (index 9218 → 9579, 361 kWh du 14/12/2025 au 14/01/2026). Ajoutez vos index suivants au fil de vos factures pour affiner l'estimation. L'abonnement mensuel (15,65 € TTC) est inclus dans le coût/jour et l'estimation ci-dessous. En fin d'année, utilisez « Archiver l'année » : le total est conservé pour le graphique d'évolution 5 ans, et le suivi repart de zéro avec le dernier index comme point de départ.</div>
     </div>
 
-    <div class="card">
+    <div class="card" id="nrg_evo_card">
       <h3>Évolution sur 5 ans</h3>
       <div class="sub">2025 (réel/estimé) → 2029 (projection), par poste</div>
       <div class="row">
@@ -468,7 +477,7 @@
       <div class="note">2025 eau chaude (530,24 €) et chauffage (479,50 €) = montants réels de la facture Poirier Syndic. 2025 eau courante = estimation à partir de la conso mensuelle moyenne observée (≈6,8 m³/mois). Électricité : pas d'historique 2025 (poste suivi depuis 2026), l'évolution démarre donc en 2026. 2026 = calculé depuis vos relevés d'index. 2027-2029 = projection au taux ci-dessus.</div>
     </div>
 
-    <div class="card">
+    <div class="card" id="nrg_total_card">
       <div class="result" style="background:linear-gradient(135deg,#e8e8ff,#dcdcff);">
         <span class="r-label" style="color:var(--blue-dark);">Total 4 postes — estimation 2026</span>
         <span class="r-val" id="total_year" style="color:var(--blue-dark);">0,00 €</span>
@@ -588,7 +597,7 @@
         <span class="r-label">Total charges estimées — via MyConso</span>
         <span class="r-val" id="cp_total_myconso">— €</span>
       </div>
-      <div class="note" id="cp_total_ecart_note" style="margin-top:-6px;"></div>
+      <div class="note" id="cp_total_ecart_note" style="margin-top:6px;"></div>
       <div class="result warn">
         <span class="r-label" id="cp_solde_label">Solde estimé</span>
         <span class="r-val" id="cp_solde">— €</span>
