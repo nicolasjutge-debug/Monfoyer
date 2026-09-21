@@ -120,6 +120,12 @@
     th{font-size:.68rem;}
     td{padding:8px 6px;}
 
+    /* Énergie : tableaux de relevés bornés (≈ 11 lignes) avec défilement interne et en-tête fixe.
+       Sans cela, des relevés quotidiens allongent une carte sur des milliers de pixels : elle laisse un grand
+       vide sous ses voisines et repousse les autres postes (Chauffage, Électricité) très loin en dessous. */
+    #panel-energie .table-scroll{max-height:420px;overflow-y:auto;overscroll-behavior:contain;}
+    #panel-energie .table-scroll thead th{position:sticky;top:0;z-index:1;background:#fff;border-bottom:none;box-shadow:inset 0 -2px 0 #eef;}
+
     /* Result boxes side by side */
     .result .r-label{font-size:.82rem;}
     .result .r-val{font-size:1.2rem;}
@@ -702,6 +708,8 @@ function switchTab(tabKey){
     const ca = document.querySelector('.content-area');
     if(ca) ca.scrollTop = 0;
   }
+  // Énergie : les tableaux de relevés (bornés sur PC) s'ouvrent sur les derniers relevés
+  if(tabKey==='energie') requestAnimationFrame(scrollReadingsToEnd);
 }
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click',()=>switchTab(tab.dataset.tab));
@@ -1029,13 +1037,18 @@ function deleteRow(u,i,evt){
   toast('Relevé supprimé ✓');
 }
 
+// Onglet Énergie : chaque tableau de relevés s'ouvre sur les derniers relevés
+function scrollReadingsToEnd(){
+  document.querySelectorAll('#panel-energie .table-scroll').forEach(sc=>{ sc.scrollTop = sc.scrollHeight; });
+}
+
 function renderUnit(u){
   const prix = parseFloat(document.getElementById(u+'_prix').value)||0;
   const aboEl = document.getElementById(u+'_abo');
   const abo = aboEl ? (parseFloat(aboEl.value)||0) : 0;
   const rows = DATA[u];
   const tbody = document.getElementById(u+'_table');
-  tbody.innerHTML='';
+  let tableHtml='';
   let totalConso=0, totalCost=0;
   rows.forEach((r,i)=>{
     let conso=0, cost=0;
@@ -1044,7 +1057,7 @@ function renderUnit(u){
       cost = conso*prix;
       totalConso += conso; totalCost += cost;
     }
-    tbody.innerHTML += `<tr class="editable" onclick="editRow('${u}',${i})">
+    tableHtml += `<tr class="editable" onclick="editRow('${u}',${i})">
       <td>${r.date}</td>
       <td>${r.index}</td>
       <td>${i>0? conso.toFixed(3)+' '+UNIT_LABEL[u] : '—'}</td>
@@ -1052,6 +1065,13 @@ function renderUnit(u){
       <td><button class="icon-btn del" onclick="deleteRow('${u}',${i},event)">🗑</button></td>
     </tr>`;
   });
+  tbody.innerHTML = tableHtml;   // une seule écriture (avant : une par ligne, très lent avec des relevés quotidiens)
+  // Tableau borné sur PC : la zone défilante se cale sur le dernier relevé quand le nombre de lignes change
+  const scrollBox = tbody.closest('.table-scroll');
+  if(scrollBox && scrollBox.dataset.n !== String(rows.length)){
+    scrollBox.dataset.n = String(rows.length);
+    scrollBox.scrollTop = scrollBox.scrollHeight;
+  }
 
   const first = rows[0], lastR = rows[rows.length-1];
   const elapsedDays = daysBetween(first.date, lastR.date);
