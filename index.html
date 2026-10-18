@@ -243,6 +243,25 @@
   #rgd_table input[type="date"].mini-input{width:118px;}
   /* inputs numériques : un peu plus larges pour les montants */
   #rgd_table input[type="number"].mini-input{width:80px;}
+
+  /* ===== BOUTON FLOTTANT : RETOUR EN HAUT ===== */
+  .to-top{
+    position:fixed;right:16px;bottom:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));
+    z-index:150;width:46px;height:46px;padding:0;border:none;border-radius:50%;
+    background:var(--blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:0 8px 24px rgba(20,20,90,0.28);
+    opacity:0;visibility:hidden;transform:translateY(10px);
+    transition:opacity .2s,transform .2s,visibility 0s linear .2s;
+    -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  }
+  .to-top.show{opacity:1;visibility:visible;transform:none;transition:opacity .2s,transform .2s,visibility 0s;}
+  .to-top svg{width:22px;height:22px;display:block;}
+  .to-top:active{background:var(--blue-dark);}
+  .to-top:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}
+  @media(hover:hover){ .to-top:hover{background:var(--blue-dark);} }
+  @media(min-width:900px){ .to-top{right:28px;bottom:28px;} }
+  @media(prefers-reduced-motion:reduce){ .to-top,.to-top.show{transition:none;} }
 </style>
 </head>
 <body>
@@ -662,6 +681,7 @@
 
 <footer>Données sources : relevé de charges Poirier Syndic (29/05/2026) et provisions n°01-03, avis de taxe foncière 2024 & 2025, tarif SPL Eau du Bassin Rennais 2026, offre électricité Prix Stable.</footer>
 <div class="toast" id="toast"></div>
+<button type="button" class="to-top" id="to_top" aria-label="Retour en haut de la page" title="Retour en haut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
 
 <script>
 const fmt = v => v.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
@@ -2054,6 +2074,32 @@ async function importBackupFile(event){
 
 document.getElementById('jb_key').addEventListener('input', ()=>{ debouncedSaveJBConfig(); autoSyncJSONBin(); });
 document.getElementById('jb_bin').addEventListener('input', ()=>{ debouncedSaveJBConfig(); });
+
+// ---------- BOUTON RETOUR EN HAUT ----------
+// Bouton flottant : il apparaît dès qu'on a descendu dans la page et ramène tout en haut (là où sont les onglets).
+(function(){
+  const btn = document.getElementById('to_top');
+  if(!btn) return;
+  const SEUIL = 400;   // px de défilement avant d'afficher le bouton
+  let queued = false;
+  function refresh(){
+    queued = false;
+    const y = window.pageYOffset || document.documentElement.scrollTop || 0;
+    btn.classList.toggle('show', y > SEUIL);
+  }
+  function queueRefresh(){
+    if(queued) return;
+    queued = true;
+    requestAnimationFrame(refresh);
+  }
+  window.addEventListener('scroll', queueRefresh, {passive:true});
+  window.addEventListener('resize', queueRefresh);
+  btn.addEventListener('click', ()=>{
+    const calme = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({top:0, behavior: calme ? 'auto' : 'smooth'});
+  });
+  refresh();
+})();
 
 // ---------- INIT ----------
 async function initApp(){
