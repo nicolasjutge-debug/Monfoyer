@@ -186,6 +186,18 @@
   .icon-btn{border:none;background:#eef0ff;color:var(--blue);width:24px;height:24px;border-radius:7px;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
   .icon-btn.del{background:#ffe9e9;color:var(--red);}
 
+  /* Énergie sur téléphone : seuls les 5 derniers relevés de chaque catégorie (eau, eau chaude, chauffage, électricité)
+     sont affichés. Les autres restent enregistrés (stockage, synchro, calculs) et réapparaissent avec le bouton sous
+     le tableau. Sur PC rien ne change. */
+  .readings-toggle{display:none;margin:10px auto 0;padding:8px 18px;border:none;border-radius:999px;background:#eef0ff;color:var(--blue);font-family:inherit;font-size:.78rem;font-weight:800;cursor:pointer;}
+  .readings-toggle:active{opacity:.85;}
+  @media (max-width:899px), (hover:none) and (pointer:coarse) and (max-height:500px){
+    #panel-energie .table-scroll.collapsed tbody tr:nth-last-child(n+6){display:none;}
+    #panel-energie .table-scroll.expanded{max-height:min(420px,60vh);overflow-y:auto;}
+    #panel-energie .table-scroll.expanded thead th{position:sticky;top:0;z-index:1;background:#fff;border-bottom:none;box-shadow:inset 0 -2px 0 #eef;}
+    .readings-toggle.show{display:block;}
+  }
+
   .result{margin-top:12px;background:linear-gradient(135deg,#effffa,#e4fff5);border-radius:14px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;}
   .result .r-label{font-size:.76rem;font-weight:700;color:#0c3d2e;}
   .result .r-val{font-size:1.1rem;font-weight:900;color:#0c3d2e;}
@@ -366,7 +378,8 @@
       <div class="row">
         <div class="field"><label>Prix €/m³</label><input type="number" step="0.0001" id="eau_prix" value="4.34"></div>
       </div>
-      <div class="table-scroll"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="eau_table"></tbody></table></div>
+      <div class="table-scroll collapsed"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="eau_table"></tbody></table></div>
+      <button type="button" class="readings-toggle" id="eau_toggle" onclick="toggleReadings('eau')" aria-expanded="false"></button>
       <div class="editing-banner" id="eau_banner">Modification du relevé sélectionné — changez la date/l'index puis enregistrez.</div>
       <div style="margin-top:10px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Date (AAAA-MM-JJ)</label><input type="text" inputmode="numeric" id="eau_date" placeholder="2026-08-05" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
@@ -391,7 +404,8 @@
         <div class="field"><label>Prix €/m³</label><input type="number" step="0.0001" id="chaude_prix" value="16.57"></div>
       </div>
       <div class="note" style="margin-top:-6px;">Ce prix se recalcule automatiquement quand vous changez le "Budget global voté" dans l'onglet Charges copro (proportionnellement). Modifiable ici aussi si besoin.</div>
-      <div class="table-scroll"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="chaude_table"></tbody></table></div>
+      <div class="table-scroll collapsed"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="chaude_table"></tbody></table></div>
+      <button type="button" class="readings-toggle" id="chaude_toggle" onclick="toggleReadings('chaude')" aria-expanded="false"></button>
       <div class="editing-banner" id="chaude_banner">Modification du relevé sélectionné — changez la date/l'index puis enregistrez.</div>
       <div style="margin-top:10px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Date (AAAA-MM-JJ)</label><input type="text" inputmode="numeric" id="chaude_date" placeholder="2026-08-05" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
@@ -426,7 +440,8 @@
         <div class="field"><label>Prix €/kWh</label><input type="number" step="0.0001" id="chauffage_prix" value="0.0901"></div>
       </div>
       <div class="note" style="margin-top:-6px;">Ce prix se recalcule automatiquement quand vous changez "Chauffage collectif" ou le "Budget global voté" dans l'onglet Charges copro (proportionnellement). Modifiable ici aussi si besoin.</div>
-      <div class="table-scroll"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="chauffage_table"></tbody></table></div>
+      <div class="table-scroll collapsed"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="chauffage_table"></tbody></table></div>
+      <button type="button" class="readings-toggle" id="chauffage_toggle" onclick="toggleReadings('chauffage')" aria-expanded="false"></button>
       <div class="editing-banner" id="chauffage_banner">Modification du relevé sélectionné — changez la date/l'index puis enregistrez.</div>
       <div style="margin-top:10px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Date (AAAA-MM-JJ)</label><input type="text" inputmode="numeric" id="chauffage_date" placeholder="2026-08-05" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
@@ -461,7 +476,8 @@
         <div class="field"><label>Abonnement mensuel TTC (€)</label><input type="number" step="0.01" id="electricite_abo" value="15.65"></div>
         <div class="field"><label>Prix kWh TTC (€)</label><input type="number" step="0.000001" id="electricite_prix" value="0.162024"></div>
       </div>
-      <div class="table-scroll"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="electricite_table"></tbody></table></div>
+      <div class="table-scroll collapsed"><table><thead><tr><th>Date</th><th>Index</th><th>Conso</th><th>Coût</th><th></th></tr></thead><tbody id="electricite_table"></tbody></table></div>
+      <button type="button" class="readings-toggle" id="electricite_toggle" onclick="toggleReadings('electricite')" aria-expanded="false"></button>
       <div class="editing-banner" id="electricite_banner">Modification du relevé sélectionné — changez la date/l'index puis enregistrez.</div>
       <div style="margin-top:10px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div style="min-width:0;overflow:hidden;"><label style="display:block;font-size:.68rem;font-weight:700;color:#6b6f8a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;">Date (AAAA-MM-JJ)</label><input type="text" inputmode="numeric" id="electricite_date" placeholder="2026-08-05" style="width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1.5px solid #dfe1f2;font-size:.92rem;font-weight:600;color:#0c0c2e;background:#fbfbff;font-family:inherit;"></div>
@@ -1062,6 +1078,39 @@ function scrollReadingsToEnd(){
   document.querySelectorAll('#panel-energie .table-scroll').forEach(sc=>{ sc.scrollTop = sc.scrollHeight; });
 }
 
+// Énergie sur téléphone : 5 derniers relevés affichés par catégorie. Rien n'est supprimé : DATA, le stockage, la synchro
+// et tous les calculs gardent l'intégralité des relevés. L'affichage réduit/complet est géré en CSS (.collapsed /
+// .expanded, uniquement en mise en page mobile) : toutes les lignes restent dans le tableau, donc les index utilisés
+// pour modifier ou supprimer un relevé restent exacts.
+const READINGS_LIMIT = 5;
+const READINGS_OPEN = {eau:false, chaude:false, chauffage:false, electricite:false};
+
+function syncReadingsToggle(u){
+  const tbody = document.getElementById(u+'_table');
+  const box = tbody ? tbody.closest('.table-scroll') : null;
+  if(!box) return;
+  const hidden = Math.max(0, DATA[u].length - READINGS_LIMIT);
+  if(hidden===0) READINGS_OPEN[u] = false;
+  const open = READINGS_OPEN[u];
+  box.classList.toggle('collapsed', !open);
+  box.classList.toggle('expanded', open);
+  const btn = document.getElementById(u+'_toggle');
+  if(btn){
+    btn.classList.toggle('show', hidden>0);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.textContent = open
+      ? 'Réduire aux '+READINGS_LIMIT+' derniers relevés'
+      : (hidden>1 ? 'Afficher les '+hidden+' relevés précédents' : 'Afficher le relevé précédent');
+  }
+}
+
+function toggleReadings(u){
+  READINGS_OPEN[u] = !READINGS_OPEN[u];
+  syncReadingsToggle(u);
+  const box = document.getElementById(u+'_table').closest('.table-scroll');
+  if(READINGS_OPEN[u]) requestAnimationFrame(()=>{ box.scrollTop = box.scrollHeight; });   // s'ouvre sur les derniers relevés
+}
+
 function renderUnit(u){
   const prix = parseFloat(document.getElementById(u+'_prix').value)||0;
   const aboEl = document.getElementById(u+'_abo');
@@ -1086,6 +1135,7 @@ function renderUnit(u){
     </tr>`;
   });
   tbody.innerHTML = tableHtml;   // une seule écriture (avant : une par ligne, très lent avec des relevés quotidiens)
+  syncReadingsToggle(u);   // téléphone : 5 derniers relevés + bouton pour afficher les précédents
   // Tableau borné sur PC : la zone défilante se cale sur le dernier relevé quand le nombre de lignes change
   const scrollBox = tbody.closest('.table-scroll');
   if(scrollBox && scrollBox.dataset.n !== String(rows.length)){
